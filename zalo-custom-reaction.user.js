@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Zalo Custom Reaction
-// @version      1.0.0
+// @version      1.1.0
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @author       Anh Duc Le
 // @match        https://*.zalo.me/*
@@ -108,15 +108,11 @@
 	};
 
 	function compressText(text) {
-		let compressed = "";
-		for (let i = 0; i < text.length; i++) {
-			compressed += compressChars[text[i]] || text[i];
-		}
-		return compressed;
+		return text.replace(/./g, (char) => compressChars[char] || char);
 	}
 
 	const RecentlyReaction = {
-		add: function (reaction) {
+		add(reaction) {
 			const emojiCustom = {
 				type: simpleHash(reaction),
 				icon: reaction,
@@ -124,27 +120,35 @@
 				class: "emoji-sizer emoji-outer",
 				bgPos: "0% 0%",
 			};
+
 			if (settings.isRecently) {
 				reactions[reactions.length - 1] = emojiCustom;
 			} else {
 				reactions.push(emojiCustom);
+				settings.isRecently = true;
 			}
-			settings.isRecently = true;
-			localStorage.setItem(
-				"recentlyCustomReaction",
-				JSON.stringify(emojiCustom)
-			);
+
+			try {
+				localStorage.setItem(
+					"recentlyCustomReaction",
+					JSON.stringify(emojiCustom)
+				);
+			} catch (e) {
+				console.warn("Cannot save to localStorage:", e);
+			}
 		},
 
-		get: function () {
-			const reaction = localStorage.getItem("recentlyCustomReaction");
-			if (reaction) {
-				return JSON.parse(reaction);
+		get() {
+			try {
+				const reaction = localStorage.getItem("recentlyCustomReaction");
+				return reaction ? JSON.parse(reaction) : null;
+			} catch (e) {
+				console.warn("Cannot read from localStorage:", e);
+				return null;
 			}
-			return null;
 		},
 
-		load: function () {
+		load() {
 			const reaction = this.get();
 			if (reaction) {
 				settings.isRecently = true;
@@ -497,142 +501,72 @@
 		],
 	};
 
+	// Cache cho các emoji category đã render
+	const cachedEmojiCategories = new Map();
+
 	const createEmojiPicker = () => {
 		const picker = document.createElement("div");
 		picker.id = "emoji-picker";
-		picker.style.cssText = `
-			position: absolute;
-			bottom: calc(100% + 10px);
-			right: 0;
-			background: white;
-			border-radius: 12px;
-			box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-			padding: 8px;
-			z-index: 10000;
-			animation: fadeIn 0.2s ease-out;
-			width: 280px;
-			max-height: 350px;
-			overflow: hidden;
-			display: flex;
-			flex-direction: column;
-		`;
+		picker.className = "emoji-picker";
 
 		const tabsContainer = document.createElement("div");
-		tabsContainer.style.cssText = `
-			display: flex;
-			overflow-x: auto;
-			padding-bottom: 5px;
-			margin-bottom: 5px;
-			border-bottom: 1px solid #eee;
-			gap: 4px;
-			scrollbar-width: none;
-			-ms-overflow-style: none;
-			height: 36px;
-			min-height: 36px;
-			align-items: center;
-		`;
+		tabsContainer.className = "emoji-tabs-container";
 
 		tabsContainer.addEventListener("mousewheel", function (e) {
 			this.scrollLeft += e.deltaY;
 			e.preventDefault();
 		});
 
-		const style = document.createElement("style");
-		style.textContent = `
-			#emoji-picker div::-webkit-scrollbar {
-				display: none;
-			}
-			.emoji-category-tab {
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				height: 28px;
-				width: 28px;
-			}
-		`;
-		document.head.appendChild(style);
-
 		const emojiContent = document.createElement("div");
-		emojiContent.style.cssText = `
-			overflow-y: auto;
-			display: grid;
-			grid-template-columns: repeat(8, 1fr);
-			gap: 4px;
-			padding-right: 4px;
-			max-height: 240px;
-		`;
+		emojiContent.className = "emoji-content";
+
+		const categoryIcons = {
+			Smileys: "😀",
+			Gestures: "👍",
+			People: "👨",
+			Animals: "🐱",
+			Food: "🍔",
+			Activities: "⚽️",
+			Objects: "📱",
+			Symbols: "❤️",
+		};
 
 		Object.keys(emojiCategories).forEach((category, idx) => {
 			const tab = document.createElement("button");
 			tab.className = "emoji-category-tab";
+			if (idx === 0) tab.classList.add("active");
 			tab.dataset.category = category;
-
-			const categoryIcons = {
-				Smileys: "😀",
-				Gestures: "👍",
-				People: "👨",
-				Animals: "🐱",
-				Food: "🍔",
-				Activities: "⚽️",
-				Objects: "📱",
-				Symbols: "❤️",
-			};
-
 			tab.textContent = categoryIcons[category] || category.slice(0, 1);
 			tab.title = category;
 
-			tab.style.cssText = `
-				background: ${idx === 0 ? "#e3f2fd" : "transparent"};
-				border: none;
-				border-radius: 6px;
-				padding: 0;
-				cursor: pointer;
-				font-size: 16px;
-				min-width: 28px;
-				min-height: 28px;
-				text-align: center;
-				transition: background-color 0.2s;
-				flex-shrink: 0;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-			`;
-
 			tab.addEventListener("click", () => {
+				// Remove active class từ tất cả tabs
 				document
 					.querySelectorAll(".emoji-category-tab")
 					.forEach((t) => {
-						t.style.background = "transparent";
+						t.classList.remove("active");
 					});
+				tab.classList.add("active");
 
-				tab.style.background = "#e3f2fd";
+				// Cache emoji content để tái sử dụng
+				if (!cachedEmojiCategories.has(category)) {
+					const fragment = document.createDocumentFragment();
+					emojiCategories[category].forEach((emoji) => {
+						const emojiButton = document.createElement("button");
+						emojiButton.className = "emoji-button";
+						emojiButton.textContent = emoji;
+						fragment.appendChild(emojiButton);
+					});
+					cachedEmojiCategories.set(
+						category,
+						fragment.cloneNode(true)
+					);
+				}
 
 				emojiContent.innerHTML = "";
-
-				emojiCategories[category].forEach((emoji) => {
-					const emojiButton = document.createElement("button");
-					emojiButton.className = "emoji-button";
-					emojiButton.textContent = emoji;
-					emojiButton.style.cssText = `
-						background: none;
-						border: none;
-						cursor: pointer;
-						font-size: 18px;
-						padding: 4px;
-						border-radius: 4px;
-						transition: background-color 0.2s, transform 0.2s;
-					`;
-					emojiButton.onmouseover = () => {
-						emojiButton.style.backgroundColor = "#f0f0f0";
-						emojiButton.style.transform = "scale(1.1)";
-					};
-					emojiButton.onmouseout = () => {
-						emojiButton.style.backgroundColor = "transparent";
-						emojiButton.style.transform = "scale(1)";
-					};
-
-					emojiContent.appendChild(emojiButton);
-				});
+				emojiContent.appendChild(
+					cachedEmojiCategories.get(category).cloneNode(true)
+				);
 			});
 
 			tabsContainer.appendChild(tab);
@@ -641,12 +575,14 @@
 		picker.appendChild(tabsContainer);
 		picker.appendChild(emojiContent);
 
+		// Click first tab để load emojis
 		setTimeout(() => {
 			const firstTab = picker.querySelector(".emoji-category-tab");
 			if (firstTab) firstTab.click();
 		}, 0);
 
-		document.addEventListener("click", (e) => {
+		// Click outside để đóng picker
+		const closePickerHandler = (e) => {
 			if (
 				picker.style.display === "flex" &&
 				!picker.contains(e.target) &&
@@ -654,9 +590,12 @@
 			) {
 				picker.style.display = "none";
 			}
-		});
+		};
+		document.addEventListener("click", closePickerHandler);
 
 		picker.style.display = "none";
+		picker._cleanup = () =>
+			document.removeEventListener("click", closePickerHandler);
 		return picker;
 	};
 
@@ -941,6 +880,94 @@
 	const enhanceReactionPanel = () => {
 		const style = document.createElement("style");
 		style.textContent = `
+			/* Emoji Picker Styles */
+			.emoji-picker {
+				position: absolute;
+				bottom: calc(100% + 10px);
+				right: 0;
+				background: white;
+				border-radius: 12px;
+				box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+				padding: 8px;
+				z-index: 10000;
+				animation: fadeIn 0.2s ease-out;
+				width: 280px;
+				max-height: 350px;
+				overflow: hidden;
+				display: flex;
+				flex-direction: column;
+			}
+			
+			.emoji-tabs-container {
+				display: flex;
+				overflow-x: auto;
+				padding-bottom: 5px;
+				margin-bottom: 5px;
+				border-bottom: 1px solid #eee;
+				gap: 4px;
+				scrollbar-width: none;
+				-ms-overflow-style: none;
+				height: 36px;
+				min-height: 36px;
+				align-items: center;
+			}
+			
+			.emoji-tabs-container::-webkit-scrollbar {
+				display: none;
+			}
+			
+			.emoji-content {
+				overflow-y: auto;
+				display: grid;
+				grid-template-columns: repeat(8, 1fr);
+				gap: 4px;
+				padding-right: 4px;
+				max-height: 240px;
+			}
+			
+			.emoji-content::-webkit-scrollbar {
+				display: none;
+			}
+			
+			.emoji-category-tab {
+				background: transparent;
+				border: none;
+				border-radius: 6px;
+				padding: 0;
+				cursor: pointer;
+				font-size: 16px;
+				min-width: 28px;
+				min-height: 28px;
+				height: 28px;
+				width: 28px;
+				text-align: center;
+				transition: background-color 0.2s;
+				flex-shrink: 0;
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			
+			.emoji-category-tab.active {
+				background: #e3f2fd;
+			}
+			
+			.emoji-button {
+				background: none;
+				border: none;
+				cursor: pointer;
+				font-size: 18px;
+				padding: 4px;
+				border-radius: 4px;
+				transition: background-color 0.2s, transform 0.2s;
+			}
+			
+			.emoji-button:hover {
+				background-color: #f0f0f0;
+				transform: scale(1.1);
+			}
+			
+			/* Reaction Panel Styles */
 			.reaction-emoji-list {
 				display: flex !important;
 				width: fit-content !important;
@@ -977,6 +1004,7 @@
 				padding: 0.07rem !important;
 			}
 			
+			/* Animations */
 			@keyframes fadeIn {
 				from { opacity: 0; }
 				to { opacity: 1; }
@@ -991,127 +1019,105 @@
 		document.head.appendChild(style);
 	};
 
-	const observer = new MutationObserver((mutations) =>
-		mutations.forEach((m) => {
-			if (
+	// Debounce function để tối ưu performance
+	let mutationTimeout;
+	const handleReactionList = () => {
+		document.querySelectorAll(".reaction-emoji-list").forEach((list) => {
+			if (list.getAttribute("data-extended") !== "true") {
+				list.setAttribute("data-extended", "true");
+				const wrapper = list.closest(".emoji-list-wrapper");
+				if (wrapper) {
+					const btn = wrapper.querySelector('[id^="reaction-btn-"]');
+					const id = btn?.id.replace("reaction-btn-", "");
+
+					list.style.animation = "popIn 0.3s ease-out forwards";
+
+					reactions.forEach((react, idx) => {
+						const div = document.createElement("div");
+						const divEmoji = document.createElement("span");
+						div.className = "reaction-emoji-icon";
+						if (react.icon.length > 2) {
+							div.className += " reaction-emoji-text";
+						}
+
+						div.setAttribute("data-custom", "true");
+						div.style.animationDelay = `${50 * (idx + 7)}ms`;
+
+						if (react.name === "send_custom") {
+							divEmoji.innerText = react.icon;
+							div.title = "Gửi reaction tùy chỉnh";
+						} else {
+							if (react.icon.length > 2) {
+								div.title = react.icon;
+							}
+							divEmoji.innerText = react.icon;
+						}
+
+						div.appendChild(divEmoji);
+						list.appendChild(div);
+						div.addEventListener("click", (e) => {
+							e.preventDefault();
+							e.stopPropagation();
+
+							if (react.name === "send_custom") {
+								if (!window.textInputPopup) {
+									window.textInputPopup =
+										createTextInputPopup();
+								}
+
+								window.textInputPopup.show();
+								window.currentReactionContext = { wrapper, id };
+
+								window.textInputPopup.confirmButton.onclick =
+									() => {
+										const customText =
+											window.textInputPopup.input.value.trim();
+										if (customText) {
+											const finalText = window
+												.textInputPopup
+												.compressionCheckbox.checked
+												? compressText(customText)
+												: customText;
+											const customReaction = {
+												...react,
+												icon: finalText,
+												type: simpleHash(finalText),
+											};
+											RecentlyReaction.add(finalText);
+											sendReaction(
+												wrapper,
+												id,
+												customReaction
+											);
+											window.textInputPopup.hide();
+										}
+									};
+								return;
+							}
+
+							sendReaction(wrapper, id, react);
+						});
+					});
+				}
+			}
+		});
+	};
+
+	const observer = new MutationObserver((mutations) => {
+		const hasReactionList = mutations.some(
+			(m) =>
 				m.type === "childList" &&
 				m.addedNodes.length > 0 &&
 				Array.from(m.addedNodes).some((n) =>
 					n.querySelector?.(".reaction-emoji-list")
 				)
-			) {
-				setTimeout(() => {
-					document
-						.querySelectorAll(".reaction-emoji-list")
-						.forEach((list) => {
-							if (list.getAttribute("data-extended") !== "true") {
-								list.setAttribute("data-extended", "true");
-								const wrapper = list.closest(
-									".emoji-list-wrapper"
-								);
-								if (wrapper) {
-									const btn = wrapper.querySelector(
-										'[id^="reaction-btn-"]'
-									);
-									const id = btn?.id.replace(
-										"reaction-btn-",
-										""
-									);
+		);
 
-									list.style.animation =
-										"popIn 0.3s ease-out forwards";
-
-									reactions.forEach((react, idx) => {
-										const div =
-											document.createElement("div");
-										const divEmoji =
-											document.createElement("span");
-										div.className = "reaction-emoji-icon";
-										if (react.icon.length > 2) {
-											div.className +=
-												" reaction-emoji-text";
-										}
-
-										div.setAttribute("data-custom", "true");
-										div.style.animationDelay = `${
-											50 * (idx + 7)
-										}ms`;
-
-										if (react.name === "send_custom") {
-											divEmoji.innerText = react.icon;
-											div.title =
-												"Gửi reaction tùy chỉnh";
-										} else {
-											if (react.icon.length > 2) {
-												div.title = react.icon;
-											}
-											divEmoji.innerText = react.icon;
-										}
-
-										div.appendChild(divEmoji);
-										list.appendChild(div);
-										div.addEventListener("click", (e) => {
-											e.preventDefault();
-											e.stopPropagation();
-
-											if (react.name === "send_custom") {
-												if (!window.textInputPopup) {
-													window.textInputPopup =
-														createTextInputPopup();
-												}
-
-												window.textInputPopup.show();
-
-												window.currentReactionContext =
-													{ wrapper, id };
-
-												window.textInputPopup.confirmButton.onclick =
-													() => {
-														const customText =
-															window.textInputPopup.input.value.trim();
-														if (customText) {
-															const finalText =
-																window
-																	.textInputPopup
-																	.compressionCheckbox
-																	.checked
-																	? compressText(
-																			customText
-																	  )
-																	: customText;
-															const customReaction =
-																{
-																	...react,
-																	icon: finalText,
-																	type: simpleHash(
-																		finalText
-																	),
-																};
-															RecentlyReaction.add(
-																finalText
-															);
-															sendReaction(
-																wrapper,
-																id,
-																customReaction
-															);
-															window.textInputPopup.hide();
-														}
-													};
-
-												return;
-											}
-
-											sendReaction(wrapper, id, react);
-										});
-									});
-								}
-							}
-						});
-				}, 50);
-			}
-		})
-	);
+		if (hasReactionList) {
+			clearTimeout(mutationTimeout);
+			mutationTimeout = setTimeout(handleReactionList, 50);
+		}
+	});
 
 	function sendReaction(wrapper, id, react) {
 		const getReactFiber = (el) => {
