@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Zalo Custom Reaction
-// @version      1.1.3
+// @version      1.1.4
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @author       Anh Duc Le
 // @match        https://*.zalo.me/*
@@ -886,8 +886,9 @@
 		style.textContent = `
 			/* Emoji Picker Styles */
 			.emoji-picker {
-				position: absolute;
-				bottom: calc(100% + 10px);
+				position: absolute !important;
+				top: unset !important;
+                left: 1px !important;
 				right: 0;
 				background: white;
 				border-radius: 12px;
@@ -895,7 +896,7 @@
 				padding: 8px;
 				z-index: 10000;
 				animation: fadeIn 0.2s ease-out;
-				width: 280px;
+				width: 296px;
 				max-height: 350px;
 				overflow: hidden;
 				display: flex;
@@ -927,6 +928,7 @@
 				gap: 4px;
 				padding-right: 4px;
 				max-height: 240px;
+                background-color: white;
 			}
 			
 			.emoji-content::-webkit-scrollbar {

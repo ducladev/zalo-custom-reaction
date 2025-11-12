@@ -1,2 +1,0 @@
-# zalo-custom-reaction
-
