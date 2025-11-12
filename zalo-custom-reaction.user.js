@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Zalo Custom Reaction
-// @version      1.1.0
+// @version      1.1.1
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @author       Anh Duc Le
 // @match        https://*.zalo.me/*
@@ -22,6 +22,7 @@
 			type: 100,
 			icon: "👏",
 			name: "clap",
+			title: "Vỗ tay",
 			class: "emoji-sizer emoji-outer",
 			bgPos: "80% 12.5%",
 		},
@@ -29,6 +30,7 @@
 			type: 101,
 			icon: "🎉",
 			name: "huh",
+			title: "Chúc mừng",
 			class: "emoji-sizer emoji-outer",
 			bgPos: "74% 62.5%",
 		},
@@ -36,6 +38,7 @@
 			type: 102,
 			icon: "🎨",
 			name: "send_custom",
+			title: "Gửi reaction tùy chỉnh",
 			class: "emoji-sizer emoji-outer",
 			bgPos: "84% 82.5%",
 		},
@@ -117,6 +120,7 @@
 				type: simpleHash(reaction),
 				icon: reaction,
 				name: reaction,
+				title: reaction, // Thêm title để hiển thị tooltip
 				class: "emoji-sizer emoji-outer",
 				bgPos: "0% 0%",
 			};
@@ -1036,22 +1040,19 @@
 						const div = document.createElement("div");
 						const divEmoji = document.createElement("span");
 						div.className = "reaction-emoji-icon";
-						if (react.icon.length > 2) {
+
+						// Đếm số ký tự hiển thị thực tế (emoji có thể là 2+ chars)
+						const displayLength = [...react.icon].length;
+						if (displayLength > 2) {
 							div.className += " reaction-emoji-text";
 						}
 
 						div.setAttribute("data-custom", "true");
 						div.style.animationDelay = `${50 * (idx + 7)}ms`;
 
-						if (react.name === "send_custom") {
-							divEmoji.innerText = react.icon;
-							div.title = "Gửi reaction tùy chỉnh";
-						} else {
-							if (react.icon.length > 2) {
-								div.title = react.icon;
-							}
-							divEmoji.innerText = react.icon;
-						}
+						// Set title - ưu tiên title field, fallback về icon
+						div.title = react.title || react.icon;
+						divEmoji.innerText = react.icon;
 
 						div.appendChild(divEmoji);
 						list.appendChild(div);
@@ -1158,10 +1159,11 @@
 		if (span) {
 			span.innerHTML = "";
 
-			if (
-				react.name === "text" ||
-				(typeof react.icon === "string" && react.icon.length > 2)
-			) {
+			// Đếm số ký tự hiển thị thực tế
+			const displayLength = [...react.icon].length;
+			const isLongText = react.name === "text" || displayLength > 2;
+
+			if (isLongText) {
 				const textContainer = document.createElement("div");
 				textContainer.className = "text-reaction";
 				textContainer.textContent = react.icon;
