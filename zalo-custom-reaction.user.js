@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Zalo Custom Reaction
-// @version      1.1.4
+// @version      1.1.6
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @author       Anh Duc Le
 // @match        https://*.zalo.me/*
@@ -43,76 +43,6 @@
 			bgPos: "84% 82.5%",
 		},
 	];
-
-	const compressChars = {
-		a: "ᵃ",
-		b: "ᵇ",
-		c: "ᶜ",
-		d: "ᵈ",
-		e: "ᵉ",
-		f: "ᶠ",
-		g: "ᵍ",
-		h: "ʰ",
-		i: "ⁱ",
-		j: "ʲ",
-		k: "ᵏ",
-		l: "ˡ",
-		m: "ᵐ",
-		n: "ⁿ",
-		o: "ᵒ",
-		p: "ᵖ",
-		q: "q",
-		r: "ʳ",
-		s: "ˢ",
-		t: "ᵗ",
-		u: "ᵘ",
-		v: "ᵛ",
-		w: "ʷ",
-		x: "ˣ",
-		y: "ʸ",
-		z: "ᶻ",
-		A: "ᴬ",
-		B: "ᴮ",
-		C: "ᶜ",
-		D: "ᴰ",
-		E: "ᴱ",
-		F: "ᶠ",
-		G: "ᴳ",
-		H: "ᴴ",
-		I: "ᴵ",
-		J: "ᴶ",
-		K: "ᴷ",
-		L: "ᴸ",
-		M: "ᴹ",
-		N: "ᴺ",
-		O: "ᴼ",
-		P: "ᴾ",
-		Q: "Q",
-		R: "ᴿ",
-		S: "ˢ",
-		T: "ᵀ",
-		U: "ᵁ",
-		V: "ⱽ",
-		W: "ᵂ",
-		X: "ˣ",
-		Y: "ʸ",
-		Z: "ᶻ",
-		0: "⁰",
-		1: "¹",
-		2: "²",
-		3: "³",
-		4: "⁴",
-		5: "⁵",
-		6: "⁶",
-		7: "⁷",
-		8: "⁸",
-		9: "⁹",
-		" ": " ",
-	};
-
-	function compressText(text) {
-		return text.replace(/./g, (char) => compressChars[char] || char);
-	}
 
 	const RecentlyReaction = {
 		add(reaction) {
@@ -717,38 +647,12 @@
 		previewContainer.appendChild(previewLabel);
 		previewContainer.appendChild(previewText);
 
-		const optionsContainer = document.createElement("div");
-		optionsContainer.style.cssText =
-			"display: flex; flex-direction: column; gap: 8px;";
-
-		const compressionOption = document.createElement("div");
-		compressionOption.style.cssText =
-			"display: flex; align-items: center; gap: 8px;";
-
-		const compressionCheckbox = document.createElement("input");
-		compressionCheckbox.type = "checkbox";
-		compressionCheckbox.id = "compression-checkbox";
-		compressionCheckbox.checked = false;
-
-		const compressionLabel = document.createElement("label");
-		compressionLabel.htmlFor = "compression-checkbox";
-		compressionLabel.textContent =
-			"Sử dụng ký tự thu nhỏ (hiển thị được nhiều hơn)";
-		compressionLabel.style.cssText = "font-size: 13px; color: #555;";
-
-		compressionOption.appendChild(compressionCheckbox);
-		compressionOption.appendChild(compressionLabel);
-		optionsContainer.appendChild(compressionOption);
-
 		const updatePreview = () => {
 			const text = input.value;
-			previewText.textContent = compressionCheckbox.checked
-				? compressText(text)
-				: text;
+			previewText.textContent = text;
 		};
 
 		input.addEventListener("input", updatePreview);
-		compressionCheckbox.addEventListener("change", updatePreview);
 
 		emojiPicker.addEventListener("click", (e) => {
 			if (e.target.classList.contains("emoji-button")) {
@@ -831,7 +735,6 @@
 		popup.appendChild(title);
 		popup.appendChild(inputContainer);
 		popup.appendChild(previewContainer);
-		popup.appendChild(optionsContainer);
 		popup.appendChild(buttonContainer);
 
 		const overlay = document.createElement("div");
@@ -866,14 +769,12 @@
 			popup,
 			input,
 			confirmButton,
-			compressionCheckbox,
 			show: () => {
 				popup.style.display = "flex";
 				overlay.style.display = "block";
 				input.value = "";
 				charCounter.textContent = "0/15";
 				previewText.textContent = "";
-				compressionCheckbox.checked = false;
 				input.focus();
 			},
 			hide: hidePopup,
@@ -1074,17 +975,12 @@
 										const customText =
 											window.textInputPopup.input.value.trim();
 										if (customText) {
-											const finalText = window
-												.textInputPopup
-												.compressionCheckbox.checked
-												? compressText(customText)
-												: customText;
 											const customReaction = {
 												...react,
-												icon: finalText,
-												type: simpleHash(finalText),
+												icon: customText,
+												type: simpleHash(customText),
 											};
-											RecentlyReaction.add(finalText);
+											RecentlyReaction.add(customText);
 											sendReaction(
 												wrapper,
 												id,
