@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Zalo Custom Reaction
-// @version      1.1.6
+// @version      1.2.0
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @author       Anh Duc Le
 // @match        https://*.zalo.me/*
@@ -24,7 +24,6 @@
 			name: "clap",
 			title: "Vỗ tay",
 			class: "emoji-sizer emoji-outer",
-			bgPos: "80% 12.5%",
 		},
 		{
 			type: 101,
@@ -32,15 +31,13 @@
 			name: "huh",
 			title: "Chúc mừng",
 			class: "emoji-sizer emoji-outer",
-			bgPos: "74% 62.5%",
 		},
 		{
 			type: 102,
 			icon: "🎨",
 			name: "send_custom",
-			title: "Gửi reaction tùy chỉnh",
+			title: "Tùy chỉnh",
 			class: "emoji-sizer emoji-outer",
-			bgPos: "84% 82.5%",
 		},
 	];
 
@@ -50,9 +47,8 @@
 				type: simpleHash(reaction),
 				icon: reaction,
 				name: reaction,
-				title: reaction, // Thêm title để hiển thị tooltip
+				title: "Gần đây",
 				class: "emoji-sizer emoji-outer",
-				bgPos: "0% 0%",
 			};
 
 			if (settings.isRecently) {
@@ -876,12 +872,10 @@
 			
 			/* Reaction Panel Styles */
 			.reaction-emoji-list {
-				display: flex !important;
-				width: fit-content !important;
-				gap: 2px !important;
-				border-radius: 28px !important;
-				background-color: white !important;
-				box-shadow: 0 2px 12px rgba(0,0,0,0.15) !important;
+				// display: flex !important;
+				// width: fit-content !important;
+				// gap: 2px !important;
+				// border-radius: 28px !important;
 			}
 			
 			.reaction-emoji-icon {
@@ -905,9 +899,9 @@
 				transform: scale(1.1) !important;
 			}
 			
-			.emoji-list-wrapper {
-				padding: 0.07rem !important;
-			}
+			// .emoji-list-wrapper {
+			// 	padding: 0.07rem !important;
+			// }
 			
 			/* Animations */
 			@keyframes fadeIn {
@@ -915,14 +909,30 @@
 				to { opacity: 1; }
 			}
 			
-			@keyframes popIn {
-				0% { transform: scale(0.8); opacity: 0; }
-				70% { transform: scale(1.05); opacity: 1; }
-				100% { transform: scale(1); opacity: 1; }
-			}
+			// @keyframes popIn {
+			// 	0% { transform: scale(0.8); opacity: 0; }
+			// 	70% { transform: scale(1.05); opacity: 1; }
+			// 	100% { transform: scale(1); opacity: 1; }
+			// }
 		`;
 		document.head.appendChild(style);
 	};
+
+	const observer = new MutationObserver((mutations) => {
+		const hasReactionList = mutations.some(
+			(m) =>
+				m.type === "childList" &&
+				m.addedNodes.length > 0 &&
+				Array.from(m.addedNodes).some((n) =>
+					n.querySelector?.(".reaction-emoji-list")
+				)
+		);
+
+		if (hasReactionList) {
+			clearTimeout(mutationTimeout);
+			mutationTimeout = setTimeout(handleReactionList, 50);
+		}
+	});
 
 	// Debounce function để tối ưu performance
 	let mutationTimeout;
@@ -932,10 +942,12 @@
 				list.setAttribute("data-extended", "true");
 				const wrapper = list.closest(".emoji-list-wrapper");
 				if (wrapper) {
-					const btn = wrapper.querySelector('[id^="reaction-btn-"]');
+					const btn = wrapper.closest('[id^="reaction-btn-"]');
 					const id = btn?.id.replace("reaction-btn-", "");
 
-					list.style.animation = "popIn 0.3s ease-out forwards";
+					console.log("Lê Anh Đức ID:", id);
+
+					// list.style.animation = "popIn 0.3s ease-out forwards";
 
 					reactions.forEach((react, idx) => {
 						const div = document.createElement("div");
@@ -949,7 +961,7 @@
 						}
 
 						div.setAttribute("data-custom", "true");
-						div.style.animationDelay = `${50 * (idx + 7)}ms`;
+						div.style.animationDelay = `${20 * (idx + 7)}ms`;
 
 						// Set title - ưu tiên title field, fallback về icon
 						div.title = react.title || react.icon;
@@ -1000,22 +1012,6 @@
 		});
 	};
 
-	const observer = new MutationObserver((mutations) => {
-		const hasReactionList = mutations.some(
-			(m) =>
-				m.type === "childList" &&
-				m.addedNodes.length > 0 &&
-				Array.from(m.addedNodes).some((n) =>
-					n.querySelector?.(".reaction-emoji-list")
-				)
-		);
-
-		if (hasReactionList) {
-			clearTimeout(mutationTimeout);
-			mutationTimeout = setTimeout(handleReactionList, 50);
-		}
-	});
-
 	function sendReaction(wrapper, id, react) {
 		const getReactFiber = (el) => {
 			for (const k in el) if (k.startsWith("__react")) return el[k];
@@ -1030,72 +1026,44 @@
 						rType: react.type,
 						rIcon: react.icon,
 					});
-					id && updateBtn(id, react);
+					// id && updateBtn(id, react);
 					break;
 				}
 				fiber = fiber.return;
 			}
 		}
-
-		if (window.S?.default?.reactionMsgInfo) {
-			const msg = wrapper.closest(".msg-item");
-			const msgFiber = msg && getReactFiber(msg);
-			msgFiber?.memoizedProps?.sendReaction({
-				rType: react.type,
-				rIcon: react.icon,
-			});
-			id && updateBtn(id, react);
-			wrapper.classList.add("hide-elist");
-			wrapper.classList.remove("show-elist");
-		}
 	}
 
-	function updateBtn(id, react) {
-		const span = document.querySelector(`#reaction-btn-${id} span`);
-		if (span) {
-			span.innerHTML = "";
+	// function updateBtn(id, react) {
+	// 	const btn = document.querySelector(`#reaction-btn-${id}`);
+	// 	if (!btn) return;
 
-			// Đếm số ký tự hiển thị thực tế
-			const displayLength = [...react.icon].length;
-			const isLongText = react.name === "text" || displayLength > 2;
+	// 	// Tìm span chứa emoji (có thể có nhiều cấp nested)
+	// 	const emojiSpan = btn.querySelector(".emoji-sizer, .emoji-outer");
 
-			if (isLongText) {
-				const textContainer = document.createElement("div");
-				textContainer.className = "text-reaction";
-				textContainer.textContent = react.icon;
-				span.appendChild(textContainer);
-			} else {
-				const emoji = document.createElement("span");
-				if (react.class) {
-					emoji.className = react.class;
-					emoji.style.cssText = `background: url("assets/emoji.1e7786c93c8a0c1773f165e2de2fd129.png?v=20180604") ${react.bgPos} / 5100% no-repeat; margin: -1px; position: relative; top: 2px`;
-				} else {
-					emoji.textContent = react.icon;
-					emoji.style.fontSize = "20px";
-				}
-				span.appendChild(emoji);
-			}
-		}
-	}
+	// 	if (emojiSpan) {
+	// 		// Đếm số ký tự hiển thị thực tế
+	// 		const displayLength = [...react.icon].length;
+	// 		const isLongText = displayLength > 2;
 
-	function initReactions() {
-		if (window.S?.default) {
-			if (!window.S.default.reactionMsgInfo.some((r) => r.rType >= 100)) {
-				window.S.default.reactionMsgInfo = [
-					...window.S.default.reactionMsgInfo,
-					...reactions.map((r) => ({
-						rType: r.type,
-						rIcon: r.icon,
-						name: r.name,
-					})),
-				];
-			}
-		} else setTimeout(initReactions, 1000);
-	}
+	// 		if (isLongText) {
+	// 			// ✅ Text dài → Dùng text-reaction bubble
+	// 			emojiSpan.innerHTML = "";
+	// 			emojiSpan.className = "text-reaction";
+	// 			emojiSpan.textContent = react.icon;
+
+	// 			// Xóa style background cũ
+	// 			emojiSpan.style.cssText = "";
+	// 		} else {
+	// 			// ✅ Emoji → Hiển thị text thuần
+	// 			emojiSpan.innerHTML = "";
+	// 			emojiSpan.textContent = react.icon;
+	// 		}
+	// 	}
+	// }
 
 	const style = document.createElement("style");
 	style.textContent = `
-		[data-custom="true"] { position: relative; }
 		[data-custom="true"]::after { 
 			content: ''; 
 			position: absolute; 
@@ -1103,13 +1071,8 @@
 			right: -2px; 
 			width: 6px; 
 			height: 6px; 
-			background: #2196F3; 
+			background: #37b361; 
 			border-radius: 50%; 
-		}
-		.msg-reaction-icon span { 
-			display: flex; 
-			align-items: center; 
-			justify-content: center; 
 		}
 		
 		.text-reaction {
@@ -1148,7 +1111,6 @@
 
 	const init = () => {
 		observer.observe(document.body, { childList: true, subtree: true });
-		initReactions();
 		enhanceReactionPanel();
 		RecentlyReaction.load();
 	};
