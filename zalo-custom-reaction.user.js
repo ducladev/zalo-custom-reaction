@@ -2,7 +2,7 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.3.2
+// @version      1.3.3
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
@@ -67,6 +67,8 @@
 			} catch (e) {
 				console.warn("Cannot save to localStorage:", e);
 			}
+
+			this.updateUI();
 		},
 
 		get() {
@@ -85,6 +87,16 @@
 				hasRecentlyReaction = true;
 				customReactions.push(reaction);
 			}
+		},
+
+		updateUI() {
+			document
+				.querySelectorAll(".reaction-emoji-list")
+				.forEach((list) => {
+					list.removeAttribute("data-extended");
+				});
+
+			handleReactionList();
 		},
 	};
 
@@ -730,7 +742,7 @@
 				overflow: hidden;
 				animation: fadeIn 0.2s ease-out;
 			}
-			
+
 			.emoji-tabs-container {
 				display: flex;
 				overflow-x: auto;
@@ -742,11 +754,11 @@
 				-ms-overflow-style: none;
 				align-items: center;
 			}
-			
+
 			.emoji-tabs-container::-webkit-scrollbar {
 				display: none;
 			}
-			
+
 			.emoji-content {
 				display: grid;
 				grid-template-columns: repeat(8, 1fr);
@@ -755,11 +767,11 @@
 				max-height: 250px;
 				background-color: transparent;
 			}
-			
+
 			.emoji-content::-webkit-scrollbar {
 				display: none;
 			}
-			
+
 			.emoji-category-tab {
 				display: flex;
 				align-items: center;
@@ -776,11 +788,11 @@
 				transition: background-color 0.2s;
 				flex-shrink: 0;
 			}
-			
+
 			.emoji-category-tab.active {
 				background: var(--layer-background) !important;
 			}
-			
+
 			.emoji-button {
 				display: flex;
 				align-items: center;
@@ -802,17 +814,17 @@
 			}
 
 			/* Custom Reaction Styles */
-			[data-custom="true"]::after { 
-				content: ''; 
-				position: absolute; 
-				bottom: -2px; 
-				right: -2px; 
-				width: 6px; 
-				height: 6px; 
-				background: var(--button-primary-normal); 
-				border-radius: 50%; 
+			[data-custom="true"]::after {
+				content: '';
+				position: absolute;
+				bottom: -2px;
+				right: -2px;
+				width: 6px;
+				height: 6px;
+				background: var(--button-primary-normal);
+				border-radius: 50%;
 			}
-			
+
 			[data-custom="true"]:hover::before {
 				content: attr(title);
 				position: absolute;
@@ -834,7 +846,7 @@
 			.reaction-emoji-icon {
 				font-size: 20px !important;
 			}
-			
+
 			.reaction-emoji-icon:hover {
 				transform: scale(1.1) !important;
 			}
@@ -887,6 +899,12 @@
 				list.setAttribute("data-extended", "true");
 				const wrapper = list.closest(".emoji-list-wrapper");
 				if (wrapper) {
+					list.querySelectorAll('[data-custom="true"]').forEach(
+						(el) => {
+							el.remove();
+						}
+					);
+
 					customReactions.forEach((react, idx) => {
 						const div = document.createElement("div");
 						const divEmoji = document.createElement("span");
