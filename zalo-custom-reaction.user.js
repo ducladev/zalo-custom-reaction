@@ -526,121 +526,51 @@
 
 	const createTextInputPopup = () => {
 		const popup = document.createElement("div");
-		popup.id = "custom-reaction-popup";
-		popup.style.cssText = `
-			position: fixed;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			background: white;
-			border-radius: 12px;
-			box-shadow: 0 4px 20px rgba(0,0,0,0.25);
-			padding: 20px;
-			z-index: 9999;
-			display: none;
-			flex-direction: column;
-			gap: 15px;
-			min-width: 300px;
-			font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', sans-serif;
-			animation: fadeIn 0.2s ease-out;
-		`;
+		popup.className = "custom-reaction-popup";
 
 		const title = document.createElement("div");
+		title.className = "popup-title";
 		title.textContent = "Tùy chỉnh reaction";
-		title.style.cssText =
-			"font-weight: bold; font-size: 16px; color: #333; margin-bottom: 5px;";
 
 		const inputContainer = document.createElement("div");
-		inputContainer.style.cssText = "position: relative;";
+		inputContainer.className = "popup-input-container";
 
 		const input = document.createElement("input");
 		input.type = "text";
 		input.id = "custom-reaction-input";
+		input.className = "popup-input";
 		input.placeholder = "Nhập nội dung reaction...";
 		input.maxLength = 15;
-		input.style.cssText = `
-			padding: 10px 12px;
-			padding-right: 40px;
-			border: 2px solid #e0e0e0;
-			border-radius: 8px;
-			width: 100%;
-			box-sizing: border-box;
-			font-size: 14px;
-			transition: border-color 0.2s;
-			outline: none;
-		`;
-		input.addEventListener("focus", () => {
-			input.style.borderColor = "#2196F3";
-		});
-		input.addEventListener("blur", () => {
-			input.style.borderColor = "#e0e0e0";
-		});
 
 		const emojiButton = document.createElement("button");
 		emojiButton.id = "emoji-button";
+		emojiButton.className = "popup-emoji-button";
 		emojiButton.textContent = "😊";
-		emojiButton.style.cssText = `
-			position: absolute;
-			right: 10px;
-			top: 50%;
-			transform: translateY(-50%);
-			background: none;
-			border: none;
-			font-size: 18px;
-			cursor: pointer;
-			padding: 0;
-			opacity: 0.7;
-			transition: opacity 0.2s, transform 0.2s;
-		`;
-		emojiButton.onmouseover = () => {
-			emojiButton.style.opacity = "1";
-			emojiButton.style.transform = "translateY(-50%) scale(1.1)";
-		};
-		emojiButton.onmouseout = () => {
-			emojiButton.style.opacity = "0.7";
-			emojiButton.style.transform = "translateY(-50%) scale(1)";
-		};
 
 		const emojiPicker = createEmojiPicker();
 
 		emojiButton.addEventListener("click", (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			if (
-				emojiPicker.style.display === "none" ||
-				emojiPicker.style.display === ""
-			) {
-				emojiPicker.style.display = "flex";
-			} else {
-				emojiPicker.style.display = "none";
-			}
+			const isVisible = emojiPicker.style.display === "flex";
+			emojiPicker.style.display = isVisible ? "none" : "flex";
 		});
 
 		const previewContainer = document.createElement("div");
-		previewContainer.style.cssText =
-			"margin-top: 5px; display: flex; flex-direction: column; gap: 5px;";
+		previewContainer.className = "popup-preview-container";
 
 		const previewLabel = document.createElement("div");
+		previewLabel.className = "popup-preview-label";
 		previewLabel.textContent = "Xem trước:";
-		previewLabel.style.cssText = "font-size: 12px; color: #666;";
 
 		const previewText = document.createElement("div");
-		previewText.style.cssText = `
-			padding: 6px 10px;
-			background: #e3f2fd;
-			border-radius: 10px;
-			font-size: 14px;
-			display: inline-block;
-			max-width: fit-content;
-			min-height: 20px;
-		`;
+		previewText.className = "popup-preview-text";
 
 		previewContainer.appendChild(previewLabel);
 		previewContainer.appendChild(previewText);
 
 		const updatePreview = () => {
-			const text = input.value;
-			previewText.textContent = text;
+			previewText.textContent = input.value;
 		};
 
 		input.addEventListener("input", updatePreview);
@@ -656,8 +586,7 @@
 		});
 
 		const charCounter = document.createElement("div");
-		charCounter.style.cssText =
-			"position: absolute; right: 10px; bottom: -18px; font-size: 11px; color: #999;";
+		charCounter.className = "popup-char-counter";
 		charCounter.textContent = "0/15";
 
 		input.addEventListener("input", () => {
@@ -670,49 +599,16 @@
 		inputContainer.appendChild(emojiPicker);
 
 		const buttonContainer = document.createElement("div");
-		buttonContainer.style.cssText =
-			"display: flex; justify-content: flex-end; gap: 12px; margin-top: 10px;";
+		buttonContainer.className = "popup-button-container";
 
 		const cancelButton = document.createElement("button");
+		cancelButton.className = "popup-button popup-button-cancel";
 		cancelButton.textContent = "Hủy";
-		cancelButton.style.cssText = `
-			padding: 8px 16px;
-			border: none;
-			border-radius: 6px;
-			background-color: #f5f5f5;
-			color: #333;
-			font-weight: 500;
-			cursor: pointer;
-			transition: background-color 0.2s;
-		`;
-		cancelButton.onmouseover = () => {
-			cancelButton.style.backgroundColor = "#e0e0e0";
-		};
-		cancelButton.onmouseout = () => {
-			cancelButton.style.backgroundColor = "#f5f5f5";
-		};
-		cancelButton.onclick = () => {
-			hidePopup();
-		};
+		cancelButton.onclick = () => hidePopup();
 
 		const confirmButton = document.createElement("button");
+		confirmButton.className = "popup-button popup-button-confirm";
 		confirmButton.textContent = "Gửi";
-		confirmButton.style.cssText = `
-			padding: 8px 16px;
-			border: none;
-			border-radius: 6px;
-			background-color: #2196F3;
-			color: white;
-			font-weight: 500;
-			cursor: pointer;
-			transition: background-color 0.2s;
-		`;
-		confirmButton.onmouseover = () => {
-			confirmButton.style.backgroundColor = "#1976D2";
-		};
-		confirmButton.onmouseout = () => {
-			confirmButton.style.backgroundColor = "#2196F3";
-		};
 
 		input.addEventListener("keydown", (e) => {
 			if (e.key === "Enter") {
@@ -729,18 +625,7 @@
 		popup.appendChild(buttonContainer);
 
 		const overlay = document.createElement("div");
-		overlay.id = "custom-reaction-overlay";
-		overlay.style.cssText = `
-			position: fixed;
-			top: 0;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			background: rgba(0,0,0,0.4);
-			z-index: 9998;
-			display: none;
-			animation: fadeIn 0.2s ease-out;
-		`;
+		overlay.className = "custom-reaction-overlay";
 		overlay.addEventListener("click", (e) => {
 			if (e.target === overlay) {
 				hidePopup();
@@ -780,9 +665,9 @@
 			.emoji-picker {
 				position: absolute !important;
 				top: unset !important;
-                left: 1px !important;
+				left: 1px !important;
 				right: 0;
-				background: white;
+				background: white !important;
 				border-radius: 12px;
 				box-shadow: 0 4px 16px rgba(0,0,0,0.2);
 				padding: 8px;
@@ -820,7 +705,7 @@
 				gap: 4px;
 				padding-right: 4px;
 				max-height: 240px;
-                background-color: white;
+				background-color: white !important;
 			}
 			
 			.emoji-content::-webkit-scrollbar {
@@ -828,7 +713,7 @@
 			}
 			
 			.emoji-category-tab {
-				background: transparent;
+				background: transparent !important;
 				border: none;
 				border-radius: 6px;
 				padding: 0;
@@ -844,25 +729,183 @@
 				display: flex;
 				align-items: center;
 				justify-content: center;
+				color: inherit !important;
 			}
 			
 			.emoji-category-tab.active {
-				background: #e3f2fd;
+				background: #e3f2fd !important;
 			}
 			
 			.emoji-button {
-				background: none;
+				background: none !important;
 				border: none;
 				cursor: pointer;
 				font-size: 18px;
 				padding: 4px;
 				border-radius: 4px;
 				transition: background-color 0.2s, transform 0.2s;
+				color: inherit !important;
 			}
 			
 			.emoji-button:hover {
-				background-color: #f0f0f0;
+				background-color: #f0f0f0 !important;
 				transform: scale(1.1);
+			}
+
+			/* Custom Reaction Popup Styles */
+			.custom-reaction-popup {
+				position: fixed;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				background: var(--layer-background);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				padding: 12px;
+				z-index: 9999;
+				display: none;
+				flex-direction: column;
+				gap: 15px;
+				min-width: 300px;
+				animation: fadeIn 0.2s ease-out;
+			}
+
+			.custom-reaction-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				right: 0;
+				bottom: 0;
+				background: var(--curtain);
+				z-index: 9998;
+				display: none;
+				animation: fadeIn 0.2s ease-out;
+			}
+
+			.popup-title {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				font-size: 1rem;
+				font-weight: 500;
+				line-height: 1.5;
+				display: block;
+			}
+
+			.popup-input-container {
+				position: relative;
+			}
+
+			.popup-input {
+				border: 1px solid var(--border-subtle);
+				padding: 0 10px 0 12px;
+				color: var(--text-primary);
+				background-color: var(--input-field-bg-outline);
+				height: 40px;
+				box-sizing: border-box;
+				border-radius: 4px;
+				transition: all .3s;
+				cursor: pointer;
+				font-size: .875rem;
+				font-weight: 400;
+				line-height: 1.5;
+				width: 100%;
+			}
+
+			.popup-input:focus {
+				border-color: #2196F3;
+			}
+
+			.popup-emoji-button {
+				position: absolute;
+				right: 10px;
+				top: 50%;
+				transform: translateY(-50%);
+				background: none;
+				border: none;
+				font-size: 18px;
+				cursor: pointer;
+				padding: 0;
+				opacity: 0.7;
+				transition: opacity 0.2s, transform 0.2s;
+			}
+
+			.popup-emoji-button:hover {
+				opacity: 1;
+				transform: translateY(-50%) scale(1.1);
+			}
+
+			.popup-char-counter {
+				position: absolute;
+				right: 0px;
+				font-size: .875rem;
+				font-weight: 400;
+				line-height: 1.5;
+				color: var(--text-primary);
+				margin-top: 5px;
+			}
+
+			.popup-preview-container {
+				display: flex;
+				flex-direction: column;
+				gap: 5px;
+				margin-top: 10px;
+			}
+
+			.popup-preview-label {
+				font-size: .875rem;
+				font-weight: 400;
+				line-height: 1.5;
+				color: var(--text-primary);
+			}
+
+			.popup-preview-text {
+				padding: 6px 10px;
+				background: var(--button-secondary-neutral-normal);
+				border-radius: 4px;
+				font-size: .875rem;
+				display: inline-block;
+				max-width: fit-content;
+				min-height: 20px;
+			}
+
+			.popup-button-container {
+				display: flex;
+				justify-content: flex-end;
+				gap: 12px;
+			}
+
+			.popup-button {
+				box-sizing: border-box;
+				border: none;
+				border-radius: 3px;
+				cursor: pointer;
+				padding: 0 16px;
+				font-size: 1rem;
+				width: fit-content;
+				min-width: max-content;
+				height: 40px;
+				line-height: 1.5;
+				font-weight: var(--medium);
+				transition: background-color 0.2s;
+			}
+
+			.popup-button-cancel {
+				background-color: var(--button-secondary-neutral-normal);;
+				color: var(--button-secondary-neutral-text);
+			}
+
+			.popup-button-cancel:hover {
+				background-color: var(--button-secondary-neutral-hover);
+			}
+
+			.popup-button-confirm {
+				background-color: var(--button-primary-normal);
+				color: var(--button-primary-text);
+			}
+
+			.popup-button-confirm:hover {
+				background-color: var(--button-primary-hover);
 			}
 			
 			.reaction-emoji-icon {
@@ -875,7 +918,7 @@
 				text-overflow: ellipsis !important;
 				max-width: 3ch !important;
 			}
-	
+
 			.reaction-emoji-icon:hover {
 				transform: scale(1.1) !important;
 			}
@@ -886,6 +929,35 @@
 				to { opacity: 1; }
 			}
 
+			/* Custom Reaction Indicator */
+			[data-custom="true"]::after { 
+				content: ''; 
+				position: absolute; 
+				bottom: -2px; 
+				right: -2px; 
+				width: 6px; 
+				height: 6px; 
+				background: #37b361; 
+				border-radius: 50%; 
+			}
+			
+			[data-custom="true"]:hover::before {
+				content: attr(title);
+				position: absolute;
+				top: -35px;
+				left: 50%;
+				transform: translateX(-50%);
+				background-color: rgba(0,0,0,0.7);
+				color: white;
+				padding: 4px 8px;
+				border-radius: 4px;
+				font-size: 12px;
+				white-space: nowrap;
+				pointer-events: none;
+				opacity: 0;
+				animation: fadeIn 0.2s forwards;
+				z-index: 9999;
+			}
 		`;
 		document.head.appendChild(style);
 	};
