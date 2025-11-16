@@ -730,7 +730,7 @@
 				overflow: hidden;
 				animation: fadeIn 0.2s ease-out;
 			}
-			
+
 			.emoji-tabs-container {
 				display: flex;
 				overflow-x: auto;
@@ -742,11 +742,11 @@
 				-ms-overflow-style: none;
 				align-items: center;
 			}
-			
+
 			.emoji-tabs-container::-webkit-scrollbar {
 				display: none;
 			}
-			
+
 			.emoji-content {
 				display: grid;
 				grid-template-columns: repeat(8, 1fr);
@@ -755,11 +755,11 @@
 				max-height: 250px;
 				background-color: transparent;
 			}
-			
+
 			.emoji-content::-webkit-scrollbar {
 				display: none;
 			}
-			
+
 			.emoji-category-tab {
 				display: flex;
 				align-items: center;
@@ -776,11 +776,11 @@
 				transition: background-color 0.2s;
 				flex-shrink: 0;
 			}
-			
+
 			.emoji-category-tab.active {
 				background: var(--layer-background) !important;
 			}
-			
+
 			.emoji-button {
 				display: flex;
 				align-items: center;
@@ -802,17 +802,17 @@
 			}
 
 			/* Custom Reaction Styles */
-			[data-custom="true"]::after { 
-				content: ''; 
-				position: absolute; 
-				bottom: -2px; 
-				right: -2px; 
-				width: 6px; 
-				height: 6px; 
-				background: var(--button-primary-normal); 
-				border-radius: 50%; 
+			[data-custom="true"]::after {
+				content: '';
+				position: absolute;
+				bottom: -2px;
+				right: -2px;
+				width: 6px;
+				height: 6px;
+				background: var(--button-primary-normal);
+				border-radius: 50%;
 			}
-			
+
 			[data-custom="true"]:hover::before {
 				content: attr(title);
 				position: absolute;
@@ -834,7 +834,7 @@
 			.reaction-emoji-icon {
 				font-size: 20px !important;
 			}
-			
+
 			.reaction-emoji-icon:hover {
 				transform: scale(1.1) !important;
 			}
