@@ -2,7 +2,7 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.3.3
+// @version      1.4.0
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
@@ -507,6 +507,30 @@
 		inputContainer.appendChild(charCounter);
 		inputContainer.appendChild(emojiPicker);
 
+		const countContainer = document.createElement("div");
+		countContainer.className = "popup-count-container";
+
+		const countLabel = document.createElement("label");
+		countLabel.className = "popup-count-label";
+		countLabel.textContent = "Số lần gửi:";
+		countLabel.htmlFor = "reaction-count-input";
+
+		const countInput = document.createElement("input");
+		countInput.className = "popup-count-input";
+		countInput.type = "number";
+		countInput.id = "reaction-count-input";
+		countInput.min = "1";
+		countInput.max = "1000";
+		countInput.value = "1";
+		countInput.placeholder = "1-1000";
+
+		const countHint = document.createElement("div");
+		countHint.className = "popup-count-hint";
+		countHint.textContent = "Tối đa 1000 lần";
+		countContainer.appendChild(countLabel);
+		countContainer.appendChild(countInput);
+		countContainer.appendChild(countHint);
+
 		const buttonContainer = document.createElement("div");
 		buttonContainer.className = "popup-button-container";
 
@@ -518,6 +542,21 @@
 		const confirmButton = document.createElement("button");
 		confirmButton.className = "popup-button popup-button-confirm";
 		confirmButton.textContent = "Gửi";
+
+		const setLoading = (isLoading) => {
+			confirmButton.disabled = isLoading;
+			cancelButton.disabled = isLoading;
+			countInput.disabled = isLoading;
+			input.disabled = isLoading;
+
+			if (isLoading) {
+				confirmButton.textContent = "Đang gửi...";
+				confirmButton.classList.add("loading");
+			} else {
+				confirmButton.textContent = "Gửi";
+				confirmButton.classList.remove("loading");
+			}
+		};
 
 		input.addEventListener("keydown", (e) => {
 			if (e.key === "Enter") {
@@ -531,6 +570,7 @@
 		popup.appendChild(title);
 		popup.appendChild(inputContainer);
 		popup.appendChild(previewContainer);
+		popup.appendChild(countContainer);
 		popup.appendChild(buttonContainer);
 
 		const overlay = document.createElement("div");
@@ -553,16 +593,19 @@
 		return {
 			popup,
 			input,
+			countInput,
 			confirmButton,
 			show: () => {
 				popup.style.display = "flex";
 				overlay.style.display = "block";
 				input.value = "";
+				countInput.value = "1";
 				charCounter.textContent = "0/15";
 				previewText.textContent = "";
 				input.focus();
 			},
 			hide: hidePopup,
+			setLoading,
 			overlay,
 		};
 	};
@@ -659,17 +702,15 @@
 			.popup-char-counter {
 				position: absolute;
 				right: 0px;
-				font-size: .875rem;
-				font-weight: 400;
-				line-height: 1.5;
-				color: var(--text-primary);
+    			font-size: .75rem;
+				color: var(--text-secondary);
 				margin-top: 5px;
 			}
 
 			.popup-preview-container {
 				display: flex;
 				flex-direction: column;
-				gap: 5px;
+				gap: 8px;
 				margin-top: 10px;
 			}
 
@@ -688,6 +729,50 @@
 				display: inline-block;
 				max-width: fit-content;
 				min-height: 20px;
+			}
+
+			.popup-count-container {
+				display: flex;
+				flex-direction: column;
+				gap: 8px;
+			}
+
+			.popup-count-label {
+				font-size: .875rem;
+				font-weight: 500;
+				line-height: 1.5;
+				color: var(--text-primary);
+			}
+
+			.popup-count-input {
+				border: 1px solid var(--border-subtle);
+				padding: 0 12px;
+				color: var(--text-primary);
+				background-color: var(--input-field-bg-outline);
+				height: 40px;
+				box-sizing: border-box;
+				border-radius: 4px;
+				transition: all .3s;
+				font-size: .875rem;
+				font-weight: 400;
+				line-height: 1.5;
+				width: 100%;
+			}
+
+			.popup-count-input:focus {
+				border-color: var(--input-field-bg-outline-pressed);
+				outline: none;
+			}
+
+			.popup-count-input:disabled {
+				opacity: 0.5;
+				cursor: not-allowed;
+			}
+
+			.popup-count-hint {
+				font-size: .75rem;
+				color: var(--text-secondary);
+				font-style: italic;
 			}
 
 			.popup-button-container {
@@ -709,6 +794,30 @@
 				line-height: 1.5;
 				font-weight: var(--medium);
 				transition: background-color 0.2s;
+			}
+			
+			.popup-button:disabled {
+				opacity: 0.6;
+				cursor: not-allowed;
+			}
+
+			.popup-button.loading {
+				position: relative;
+				padding: 0 16px 0 40px;
+			}
+
+			.popup-button.loading::after {
+				content: '';
+				position: absolute;
+				left: 16px;
+				top: 50%;
+				transform: translateY(-50%);
+				width: 14px;
+				height: 14px;
+				border: 2px solid transparent;
+				border-top-color: currentColor;
+				border-radius: 50%;
+				animation: spin 0.6s linear infinite;
 			}
 
 			.popup-button-cancel {
@@ -863,6 +972,10 @@
 				from { opacity: 0; }
 				to { opacity: 1; }
 			}
+
+			@keyframes spin {
+				to { transform: translateY(-50%) rotate(360deg); }
+			}
 		`;
 		document.head.appendChild(style);
 	};
@@ -936,10 +1049,31 @@
 								window.textInputPopup.show();
 
 								window.textInputPopup.confirmButton.onclick =
-									() => {
+									async () => {
 										const customText =
 											window.textInputPopup.input.value.trim();
-										if (customText) {
+
+										const count =
+											parseInt(
+												window.textInputPopup.countInput
+													.value
+											) || 1;
+
+										if (!customText) {
+											alert(
+												"Vui lòng nhập nội dung reaction!"
+											);
+											return;
+										}
+
+										if (count < 1 || count > 1000) {
+											alert("Số lần gửi phải từ 1-1000!");
+											return;
+										}
+
+										window.textInputPopup.setLoading(true);
+
+										try {
 											const customReaction = {
 												...react,
 												icon: customText,
@@ -947,12 +1081,43 @@
 													customText
 												),
 											};
+
 											recentlyReaction.add(customText);
-											sendReaction(
-												wrapper,
-												customReaction
+
+											for (let i = 0; i < count; i++) {
+												sendReaction(
+													wrapper,
+													customReaction
+												);
+
+												if (i < count - 1) {
+													await new Promise(
+														(resolve) =>
+															setTimeout(
+																resolve,
+																100
+															)
+													);
+												}
+											}
+
+											console.log(
+												`✅ Đã gửi ${count} reaction: ${customText}`
 											);
+
 											window.textInputPopup.hide();
+										} catch (error) {
+											console.error(
+												"❌ Lỗi khi gửi reaction:",
+												error
+											);
+											alert(
+												"Có lỗi xảy ra khi gửi reaction!"
+											);
+										} finally {
+											window.textInputPopup.setLoading(
+												false
+											);
 										}
 									};
 								return;
