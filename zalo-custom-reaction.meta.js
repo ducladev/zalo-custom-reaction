@@ -2,7 +2,7 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.3.1
+// @version      1.3.2
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*

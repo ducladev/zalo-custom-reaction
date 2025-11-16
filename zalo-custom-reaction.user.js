@@ -2,7 +2,7 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.3.1
+// @version      1.3.2
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
@@ -18,8 +18,6 @@
 
 (function () {
 	"use strict";
-
-	let hasRecentlyReaction = false;
 
 	const customReactions = [
 		{
@@ -40,6 +38,12 @@
 		},
 	];
 
+	let hasRecentlyReaction = false;
+
+	/**
+	 * Recently used reaction manager
+	 * @author Anh Duc Le
+	 */
 	const recentlyReaction = {
 		add(reaction) {
 			const emojiCustom = {
@@ -85,6 +89,7 @@
 	};
 
 	let emojiCategories = {};
+
 	const cachedEmojiCategories = new Map();
 
 	/**
@@ -320,6 +325,101 @@
 	};
 
 	/**
+	 * Creates an emoji picker component.
+	 * @author Anh Duc Le
+	 */
+	const createEmojiPicker = () => {
+		const picker = document.createElement("div");
+		picker.className = "emoji-picker";
+
+		const tabsContainer = document.createElement("div");
+		tabsContainer.className = "emoji-tabs-container";
+
+		tabsContainer.addEventListener("mousewheel", function (e) {
+			this.scrollLeft += e.deltaY;
+			e.preventDefault();
+		});
+
+		const emojiContent = document.createElement("div");
+		emojiContent.className = "emoji-content";
+
+		const categoryIcons = {
+			"Smileys & Emotion": "😀",
+			"People & Body": "👨",
+			"Animals & Nature": "🐱",
+			"Food & Drink": "🍔",
+			"Travel & Places": "🚗",
+			Activities: "⚽",
+			Objects: "📱",
+			Symbols: "❤️",
+			Flags: "🏳️",
+		};
+
+		Object.keys(emojiCategories).forEach((category, idx) => {
+			const tab = document.createElement("button");
+			tab.className = "emoji-category-tab";
+			if (idx === 0) tab.classList.add("active");
+			tab.dataset.category = category;
+			tab.textContent = categoryIcons[category] || "📂";
+			tab.title = category;
+
+			tab.addEventListener("click", () => {
+				document
+					.querySelectorAll(".emoji-category-tab")
+					.forEach((t) => {
+						t.classList.remove("active");
+					});
+				tab.classList.add("active");
+
+				if (!cachedEmojiCategories.has(category)) {
+					const fragment = document.createDocumentFragment();
+					emojiCategories[category].forEach((emoji) => {
+						const emojiButton = document.createElement("button");
+						emojiButton.className = "emoji-button";
+						emojiButton.textContent = emoji;
+						fragment.appendChild(emojiButton);
+					});
+					cachedEmojiCategories.set(
+						category,
+						fragment.cloneNode(true)
+					);
+				}
+
+				emojiContent.innerHTML = "";
+				emojiContent.appendChild(
+					cachedEmojiCategories.get(category).cloneNode(true)
+				);
+			});
+
+			tabsContainer.appendChild(tab);
+		});
+
+		picker.appendChild(tabsContainer);
+		picker.appendChild(emojiContent);
+
+		setTimeout(() => {
+			const firstTab = picker.querySelector(".emoji-category-tab");
+			if (firstTab) firstTab.click();
+		}, 0);
+
+		const closePickerHandler = (e) => {
+			if (
+				picker.style.display === "flex" &&
+				!picker.contains(e.target) &&
+				!e.target.classList.contains("emoji-button")
+			) {
+				picker.style.display = "none";
+			}
+		};
+		document.addEventListener("click", closePickerHandler);
+
+		picker.style.display = "none";
+		picker._cleanup = () =>
+			document.removeEventListener("click", closePickerHandler);
+		return picker;
+	};
+
+	/**
 	 * Creates the text input popup for custom reactions.
 	 * @author Anh Duc Le
 	 */
@@ -453,101 +553,6 @@
 			hide: hidePopup,
 			overlay,
 		};
-	};
-
-	/**
-	 * Creates an emoji picker component.
-	 * @author Anh Duc Le
-	 */
-	const createEmojiPicker = () => {
-		const picker = document.createElement("div");
-		picker.className = "emoji-picker";
-
-		const tabsContainer = document.createElement("div");
-		tabsContainer.className = "emoji-tabs-container";
-
-		tabsContainer.addEventListener("mousewheel", function (e) {
-			this.scrollLeft += e.deltaY;
-			e.preventDefault();
-		});
-
-		const emojiContent = document.createElement("div");
-		emojiContent.className = "emoji-content";
-
-		const categoryIcons = {
-			"Smileys & Emotion": "😀",
-			"People & Body": "👨",
-			"Animals & Nature": "🐱",
-			"Food & Drink": "🍔",
-			"Travel & Places": "🚗",
-			Activities: "⚽",
-			Objects: "📱",
-			Symbols: "❤️",
-			Flags: "🏳️",
-		};
-
-		Object.keys(emojiCategories).forEach((category, idx) => {
-			const tab = document.createElement("button");
-			tab.className = "emoji-category-tab";
-			if (idx === 0) tab.classList.add("active");
-			tab.dataset.category = category;
-			tab.textContent = categoryIcons[category] || "📂";
-			tab.title = category;
-
-			tab.addEventListener("click", () => {
-				document
-					.querySelectorAll(".emoji-category-tab")
-					.forEach((t) => {
-						t.classList.remove("active");
-					});
-				tab.classList.add("active");
-
-				if (!cachedEmojiCategories.has(category)) {
-					const fragment = document.createDocumentFragment();
-					emojiCategories[category].forEach((emoji) => {
-						const emojiButton = document.createElement("button");
-						emojiButton.className = "emoji-button";
-						emojiButton.textContent = emoji;
-						fragment.appendChild(emojiButton);
-					});
-					cachedEmojiCategories.set(
-						category,
-						fragment.cloneNode(true)
-					);
-				}
-
-				emojiContent.innerHTML = "";
-				emojiContent.appendChild(
-					cachedEmojiCategories.get(category).cloneNode(true)
-				);
-			});
-
-			tabsContainer.appendChild(tab);
-		});
-
-		picker.appendChild(tabsContainer);
-		picker.appendChild(emojiContent);
-
-		setTimeout(() => {
-			const firstTab = picker.querySelector(".emoji-category-tab");
-			if (firstTab) firstTab.click();
-		}, 0);
-
-		const closePickerHandler = (e) => {
-			if (
-				picker.style.display === "flex" &&
-				!picker.contains(e.target) &&
-				!e.target.classList.contains("emoji-button")
-			) {
-				picker.style.display = "none";
-			}
-		};
-		document.addEventListener("click", closePickerHandler);
-
-		picker.style.display = "none";
-		picker._cleanup = () =>
-			document.removeEventListener("click", closePickerHandler);
-		return picker;
 	};
 
 	/**
@@ -850,6 +855,12 @@
 		document.head.appendChild(style);
 	};
 
+	let mutationTimeout = null;
+
+	/**
+	 * MutationObserver to monitor for reaction list additions
+	 * @author Anh Duc Le
+	 */
 	const observer = new MutationObserver((mutations) => {
 		const hasReactionList = mutations.some(
 			(m) =>
@@ -866,16 +877,16 @@
 		}
 	});
 
-	let mutationTimeout;
+	/**
+	 * Handles the addition of custom reactions to the reaction list.
+	 * @author Anh Duc Le
+	 */
 	const handleReactionList = () => {
 		document.querySelectorAll(".reaction-emoji-list").forEach((list) => {
 			if (list.getAttribute("data-extended") !== "true") {
 				list.setAttribute("data-extended", "true");
 				const wrapper = list.closest(".emoji-list-wrapper");
 				if (wrapper) {
-					const btn = wrapper.closest('[id^="reaction-btn-"]');
-					const id = btn?.id.replace("reaction-btn-", "");
-
 					customReactions.forEach((react, idx) => {
 						const div = document.createElement("div");
 						const divEmoji = document.createElement("span");
@@ -921,7 +932,6 @@
 											recentlyReaction.add(customText);
 											sendReaction(
 												wrapper,
-												id,
 												customReaction
 											);
 											window.textInputPopup.hide();
@@ -930,7 +940,7 @@
 								return;
 							}
 
-							sendReaction(wrapper, id, react);
+							sendReaction(wrapper, react);
 						});
 					});
 				}
@@ -938,7 +948,13 @@
 		});
 	};
 
-	function sendReaction(wrapper, id, react) {
+	/**
+	 * Sends the selected reaction using React's internal mechanisms.
+	 * @author Anh Duc Le
+	 * @param {HTMLElement} wrapper - The reaction button wrapper element
+	 * @param {Object} react - The reaction object containing type and icon
+	 */
+	function sendReaction(wrapper, react) {
 		const getReactFiber = (el) => {
 			for (const k in el) if (k.startsWith("__react")) return el[k];
 			return null;
@@ -975,6 +991,10 @@
 		return Math.abs(hash);
 	}
 
+	/**
+	 * Initializes the userscript by loading emoji data, setting up mutation observer, injecting styles, and loading recent reactions.
+	 * @author Anh Duc Le
+	 */
 	const init = async () => {
 		await loadEmojiData();
 		observer.observe(document.body, { childList: true, subtree: true });
@@ -982,6 +1002,7 @@
 		recentlyReaction.load();
 	};
 
+	// Initialize when DOM is ready
 	"loading" === document.readyState
 		? document.addEventListener("DOMContentLoaded", init)
 		: init();
