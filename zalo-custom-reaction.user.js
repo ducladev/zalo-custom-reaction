@@ -2,7 +2,7 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.3.2
+// @version      1.3.3
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
@@ -67,6 +67,8 @@
 			} catch (e) {
 				console.warn("Cannot save to localStorage:", e);
 			}
+
+			this.updateUI();
 		},
 
 		get() {
@@ -85,6 +87,16 @@
 				hasRecentlyReaction = true;
 				customReactions.push(reaction);
 			}
+		},
+
+		updateUI() {
+			document
+				.querySelectorAll(".reaction-emoji-list")
+				.forEach((list) => {
+					list.removeAttribute("data-extended");
+				});
+
+			handleReactionList();
 		},
 	};
 
@@ -887,6 +899,12 @@
 				list.setAttribute("data-extended", "true");
 				const wrapper = list.closest(".emoji-list-wrapper");
 				if (wrapper) {
+					list.querySelectorAll('[data-custom="true"]').forEach(
+						(el) => {
+							el.remove();
+						}
+					);
+
 					customReactions.forEach((react, idx) => {
 						const div = document.createElement("div");
 						const divEmoji = document.createElement("span");
