@@ -431,7 +431,6 @@
 		],
 	};
 
-	// Cache cho các emoji category đã render
 	const cachedEmojiCategories = new Map();
 
 	const createEmojiPicker = () => {
@@ -470,7 +469,6 @@
 			tab.title = category;
 
 			tab.addEventListener("click", () => {
-				// Remove active class từ tất cả tabs
 				document
 					.querySelectorAll(".emoji-category-tab")
 					.forEach((t) => {
@@ -478,7 +476,6 @@
 					});
 				tab.classList.add("active");
 
-				// Cache emoji content để tái sử dụng
 				if (!cachedEmojiCategories.has(category)) {
 					const fragment = document.createDocumentFragment();
 					emojiCategories[category].forEach((emoji) => {
@@ -505,13 +502,11 @@
 		picker.appendChild(tabsContainer);
 		picker.appendChild(emojiContent);
 
-		// Click first tab để load emojis
 		setTimeout(() => {
 			const firstTab = picker.querySelector(".emoji-category-tab");
 			if (firstTab) firstTab.click();
 		}, 0);
 
-		// Click outside để đóng picker
 		const closePickerHandler = (e) => {
 			if (
 				picker.style.display === "flex" &&
@@ -531,7 +526,7 @@
 
 	const createTextInputPopup = () => {
 		const popup = document.createElement("div");
-		popup.id = "custom-text-reaction-popup";
+		popup.id = "custom-reaction-popup";
 		popup.style.cssText = `
 			position: fixed;
 			top: 50%;
@@ -560,7 +555,7 @@
 
 		const input = document.createElement("input");
 		input.type = "text";
-		input.id = "custom-text-reaction-input";
+		input.id = "custom-reaction-input";
 		input.placeholder = "Nhập nội dung reaction...";
 		input.maxLength = 15;
 		input.style.cssText = `
@@ -870,22 +865,8 @@
 				transform: scale(1.1);
 			}
 			
-			/* Reaction Panel Styles */
-			.reaction-emoji-list {
-				// display: flex !important;
-				// width: fit-content !important;
-				// gap: 2px !important;
-				// border-radius: 28px !important;
-			}
-			
 			.reaction-emoji-icon {
-				display: flex !important;
-				align-items: center !important;
-				justify-content: center !important;
 				font-size: 20px !important;
-				border-radius: 50% !important;
-				cursor: pointer !important;
-				transition: transform 0.2s !important;
 			}
 			
 			.reaction-emoji-text {
@@ -899,21 +880,12 @@
 				transform: scale(1.1) !important;
 			}
 			
-			// .emoji-list-wrapper {
-			// 	padding: 0.07rem !important;
-			// }
-			
 			/* Animations */
 			@keyframes fadeIn {
 				from { opacity: 0; }
 				to { opacity: 1; }
 			}
-			
-			// @keyframes popIn {
-			// 	0% { transform: scale(0.8); opacity: 0; }
-			// 	70% { transform: scale(1.05); opacity: 1; }
-			// 	100% { transform: scale(1); opacity: 1; }
-			// }
+
 		`;
 		document.head.appendChild(style);
 	};
@@ -934,7 +906,6 @@
 		}
 	});
 
-	// Debounce function để tối ưu performance
 	let mutationTimeout;
 	const handleReactionList = () => {
 		document.querySelectorAll(".reaction-emoji-list").forEach((list) => {
@@ -945,16 +916,11 @@
 					const btn = wrapper.closest('[id^="reaction-btn-"]');
 					const id = btn?.id.replace("reaction-btn-", "");
 
-					console.log("Lê Anh Đức ID:", id);
-
-					// list.style.animation = "popIn 0.3s ease-out forwards";
-
 					reactions.forEach((react, idx) => {
 						const div = document.createElement("div");
 						const divEmoji = document.createElement("span");
 						div.className = "reaction-emoji-icon";
 
-						// Đếm số ký tự hiển thị thực tế (emoji có thể là 2+ chars)
 						const displayLength = [...react.icon].length;
 						if (displayLength > 2) {
 							div.className += " reaction-emoji-text";
@@ -963,7 +929,6 @@
 						div.setAttribute("data-custom", "true");
 						div.style.animationDelay = `${20 * (idx + 7)}ms`;
 
-						// Set title - ưu tiên title field, fallback về icon
 						div.title = react.title || react.icon;
 						divEmoji.innerText = react.icon;
 
@@ -1026,41 +991,12 @@
 						rType: react.type,
 						rIcon: react.icon,
 					});
-					// id && updateBtn(id, react);
 					break;
 				}
 				fiber = fiber.return;
 			}
 		}
 	}
-
-	// function updateBtn(id, react) {
-	// 	const btn = document.querySelector(`#reaction-btn-${id}`);
-	// 	if (!btn) return;
-
-	// 	// Tìm span chứa emoji (có thể có nhiều cấp nested)
-	// 	const emojiSpan = btn.querySelector(".emoji-sizer, .emoji-outer");
-
-	// 	if (emojiSpan) {
-	// 		// Đếm số ký tự hiển thị thực tế
-	// 		const displayLength = [...react.icon].length;
-	// 		const isLongText = displayLength > 2;
-
-	// 		if (isLongText) {
-	// 			// ✅ Text dài → Dùng text-reaction bubble
-	// 			emojiSpan.innerHTML = "";
-	// 			emojiSpan.className = "text-reaction";
-	// 			emojiSpan.textContent = react.icon;
-
-	// 			// Xóa style background cũ
-	// 			emojiSpan.style.cssText = "";
-	// 		} else {
-	// 			// ✅ Emoji → Hiển thị text thuần
-	// 			emojiSpan.innerHTML = "";
-	// 			emojiSpan.textContent = react.icon;
-	// 		}
-	// 	}
-	// }
 
 	const style = document.createElement("style");
 	style.textContent = `
@@ -1075,24 +1011,10 @@
 			border-radius: 50%; 
 		}
 		
-		.text-reaction {
-			background-color: #e3f2fd;
-			border-radius: 12px;
-			padding: 3px 10px;
-			font-size: 12px;
-			font-weight: 600;
-			color: #1976d2;
-			max-width: 120px;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			white-space: nowrap;
-			box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-		}
-		
 		[data-custom="true"]:hover::before {
 			content: attr(title);
 			position: absolute;
-			top: -30px;
+			top: -35px;
 			left: 50%;
 			transform: translateX(-50%);
 			background-color: rgba(0,0,0,0.7);
