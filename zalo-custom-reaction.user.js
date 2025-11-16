@@ -5,8 +5,8 @@
 // @author       Anh Duc Le
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
+// @icon         https://www.google.com/s2/favicons?sz=64&domain=tampermonkey.net
 // @grant        none
-// @run-at       document-idle
 // @downloadURL  https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.user.js
 // ==/UserScript==
 
@@ -1069,39 +1069,6 @@
 			}
 		}
 	}
-
-	const style = document.createElement("style");
-	style.textContent = `
-		[data-custom="true"]::after { 
-			content: ''; 
-			position: absolute; 
-			bottom: -2px; 
-			right: -2px; 
-			width: 6px; 
-			height: 6px; 
-			background: #37b361; 
-			border-radius: 50%; 
-		}
-		
-		[data-custom="true"]:hover::before {
-			content: attr(title);
-			position: absolute;
-			top: -35px;
-			left: 50%;
-			transform: translateX(-50%);
-			background-color: rgba(0,0,0,0.7);
-			color: white;
-			padding: 4px 8px;
-			border-radius: 4px;
-			font-size: 12px;
-			white-space: nowrap;
-			pointer-events: none;
-			opacity: 0;
-			animation: fadeIn 0.2s forwards;
-			z-index: 9999;
-		}
-	`;
-	document.head.appendChild(style);
 
 	const init = () => {
 		observer.observe(document.body, { childList: true, subtree: true });
