@@ -2,70 +2,62 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.2.0
+// @version      1.3.0
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @connect      raw.githubusercontent.com
 // @license      MIT; https://opensource.org/licenses/MIT
-// @icon         https://raw.githubusercontent.com/ducladev/zalo-custom-reaction/refs/heads/dev/icon.svg
+// @icon         https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/icon.svg
 // @run-at       document-idle
 // @homepage     https://github.com/ducladev/zalo-custom-reaction
-// @downloadURL  https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.user.js
-// @updateURL    https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.meta.js
+// @downloadURL  https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/zalo-custom-reaction.user.js
+// @updateURL    https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/zalo-custom-reaction.meta.js
 // ==/UserScript==
 
 (function () {
 	"use strict";
 
-	const settings = {
-		isRecently: false,
-	};
+	let hasRecentlyReaction = false;
 
-	const reactions = [
+	const customReactions = [
 		{
 			type: 100,
 			icon: "👏",
-			name: "clap",
 			title: "Vỗ tay",
-			class: "emoji-sizer emoji-outer",
 		},
 		{
 			type: 101,
 			icon: "🎉",
-			name: "huh",
 			title: "Chúc mừng",
-			class: "emoji-sizer emoji-outer",
 		},
 		{
 			type: 102,
 			icon: "🎨",
-			name: "send_custom",
+			name: "customize",
 			title: "Tùy chỉnh",
-			class: "emoji-sizer emoji-outer",
 		},
 	];
 
-	const RecentlyReaction = {
+	const recentlyReaction = {
 		add(reaction) {
 			const emojiCustom = {
-				type: simpleHash(reaction),
+				type: generateReactionHash(reaction),
 				icon: reaction,
-				name: reaction,
 				title: "Gần đây",
-				class: "emoji-sizer emoji-outer",
 			};
 
-			if (settings.isRecently) {
-				reactions[reactions.length - 1] = emojiCustom;
+			if (hasRecentlyReaction) {
+				customReactions[customReactions.length - 1] = emojiCustom;
 			} else {
-				reactions.push(emojiCustom);
-				settings.isRecently = true;
+				customReactions.push(emojiCustom);
+				hasRecentlyReaction = true;
 			}
 
 			try {
 				localStorage.setItem(
-					"recentlyCustomReaction",
+					"zalo_recent_reaction",
 					JSON.stringify(emojiCustom)
 				);
 			} catch (e) {
@@ -75,7 +67,7 @@
 
 		get() {
 			try {
-				const reaction = localStorage.getItem("recentlyCustomReaction");
+				const reaction = localStorage.getItem("zalo_recent_reaction");
 				return reaction ? JSON.parse(reaction) : null;
 			} catch (e) {
 				console.warn("Cannot read from localStorage:", e);
@@ -86,449 +78,251 @@
 		load() {
 			const reaction = this.get();
 			if (reaction) {
-				settings.isRecently = true;
-				reactions.push(reaction);
+				hasRecentlyReaction = true;
+				customReactions.push(reaction);
 			}
 		},
 	};
 
-	function simpleHash(str) {
-		let hash = 0;
-		for (let i = 0; i < str.length; i++) {
-			hash = (hash << 5) - hash + str.charCodeAt(i);
-			hash |= 0;
-		}
-		return Math.abs(hash);
-	}
-
-	const emojiCategories = {
-		Smileys: [
-			"😀",
-			"😃",
-			"😄",
-			"😁",
-			"😆",
-			"😅",
-			"😂",
-			"🤣",
-			"🥲",
-			"😊",
-			"😇",
-			"🙂",
-			"🙃",
-			"😉",
-			"😌",
-			"😍",
-			"🥰",
-			"😘",
-			"😗",
-			"😙",
-			"😚",
-			"😋",
-			"😛",
-			"😝",
-			"😜",
-			"🤪",
-			"🤨",
-			"🧐",
-			"🤓",
-			"😎",
-			"🥸",
-			"🤩",
-			"🥳",
-			"😏",
-			"😒",
-			"😞",
-			"😔",
-			"😟",
-			"😕",
-			"🙁",
-			"☹️",
-			"😣",
-			"😖",
-			"😫",
-			"😩",
-			"🥺",
-			"😢",
-			"😭",
-			"😮‍💨",
-			"😤",
-			"😠",
-			"😡",
-			"🤬",
-			"🤯",
-			"😳",
-			"🥵",
-			"🥶",
-			"😱",
-			"😨",
-			"😰",
-			"😥",
-		],
-		Gestures: [
-			"👋",
-			"🤚",
-			"✋",
-			"🖖",
-			"👌",
-			"🤌",
-			"🤏",
-			"✌️",
-			"🤞",
-			"🤟",
-			"🤘",
-			"🤙",
-			"👈",
-			"👉",
-			"👆",
-			"🖕",
-			"👇",
-			"👍",
-			"👎",
-			"✊",
-			"👊",
-			"🤛",
-			"🤜",
-			"👏",
-			"🙌",
-			"👐",
-			"🤲",
-			"🤝",
-			"🙏",
-		],
-		People: [
-			"👶",
-			"👧",
-			"🧒",
-			"👦",
-			"👩",
-			"🧑",
-			"👨",
-			"👩‍🦱",
-			"🧑‍🦱",
-			"👨‍🦱",
-			"👩‍🦰",
-			"🧑‍🦰",
-			"👨‍🦰",
-			"👱‍♀️",
-			"👱",
-			"👱‍♂️",
-			"👩‍🦳",
-			"🧑‍🦳",
-			"👨‍🦳",
-			"👩‍🦲",
-			"🧑‍🦲",
-			"👨‍🦲",
-			"🧔‍♀️",
-			"🧔",
-			"🧔‍♂️",
-		],
-		Animals: [
-			"🐶",
-			"🐱",
-			"🐭",
-			"🐹",
-			"🐰",
-			"🦊",
-			"🐻",
-			"🐼",
-			"🐻‍❄️",
-			"🐨",
-			"🐯",
-			"🦁",
-			"🐮",
-			"🐷",
-			"🐽",
-			"🐸",
-			"🐵",
-			"🙈",
-			"🙉",
-			"🙊",
-			"🐒",
-			"🐔",
-			"🐧",
-			"🐦",
-			"🐤",
-			"🐣",
-			"🐥",
-			"🦆",
-			"🦅",
-			"🦉",
-			"🦇",
-			"🐺",
-			"🐗",
-			"🐴",
-			"🦄",
-			"🐝",
-			"🪱",
-			"🐛",
-			"🦋",
-			"🐌",
-			"🐞",
-		],
-		Food: [
-			"🍎",
-			"🍐",
-			"🍊",
-			"🍋",
-			"🍌",
-			"🍉",
-			"🍇",
-			"🍓",
-			"🫐",
-			"🍈",
-			"🍒",
-			"🍑",
-			"🥭",
-			"🍍",
-			"🥥",
-			"🥝",
-			"🍅",
-			"🍆",
-			"🥑",
-			"🥦",
-			"🥬",
-			"🥒",
-			"🌶",
-			"🫑",
-			"🌽",
-			"🥕",
-			"🥔",
-			"🍠",
-			"🥐",
-			"🥯",
-			"🍞",
-			"🥖",
-			"🥨",
-			"🧀",
-			"🥚",
-			"🍳",
-			"🧈",
-			"🥞",
-			"🧇",
-			"🥓",
-			"🍔",
-			"🍟",
-			"🍕",
-			"🌭",
-			"🥪",
-			"🌮",
-			"🌯",
-			"🫔",
-			"🥙",
-		],
-		Activities: [
-			"⚽️",
-			"🏀",
-			"🏈",
-			"⚾️",
-			"🥎",
-			"🎾",
-			"🏐",
-			"🏉",
-			"🥏",
-			"🎱",
-			"🪀",
-			"🏓",
-			"🏸",
-			"🏒",
-			"🏑",
-			"🥍",
-			"🏏",
-			"🪃",
-			"🥅",
-			"⛳️",
-			"🪁",
-			"🏹",
-			"🎣",
-			"🤿",
-			"🥊",
-			"🥋",
-			"🎽",
-			"🛹",
-			"🛼",
-			"🛷",
-			"⛸",
-			"🥌",
-			"🎿",
-		],
-		Objects: [
-			"⌚️",
-			"📱",
-			"💻",
-			"⌨️",
-			"🖥",
-			"🖱",
-			"🖨",
-			"🕹",
-			"🗜",
-			"💾",
-			"💿",
-			"📀",
-			"📼",
-			"📷",
-			"📸",
-			"📹",
-			"🎥",
-			"📽",
-			"🎞",
-			"📞",
-			"☎️",
-			"📟",
-			"📠",
-			"📺",
-			"📻",
-			"🎙",
-			"🎚",
-			"🎛",
-			"🧭",
-			"⏱",
-			"⏲",
-			"⏰",
-			"🕰",
-		],
-		Symbols: [
-			"❤️",
-			"🧡",
-			"💛",
-			"💚",
-			"💙",
-			"💜",
-			"🖤",
-			"🤍",
-			"🤎",
-			"💔",
-			"❣️",
-			"💕",
-			"💞",
-			"💓",
-			"💗",
-			"💖",
-			"💘",
-			"💝",
-			"💟",
-			"☮️",
-			"✝️",
-			"☪️",
-			"🕉",
-			"☸️",
-			"✡️",
-			"🔯",
-			"🕎",
-			"☯️",
-			"☦️",
-			"🛐",
-			"⛎",
-			"♈️",
-			"♉️",
-			"♊️",
-			"♋️",
-			"♌️",
-			"♍️",
-			"♎️",
-			"♏️",
-			"♐️",
-			"♑️",
-			"♒️",
-			"♓️",
-			"🆔",
-			"⚛️",
-		],
-	};
-
+	let emojiCategories = {};
 	const cachedEmojiCategories = new Map();
 
-	const createEmojiPicker = () => {
-		const picker = document.createElement("div");
-		picker.id = "emoji-picker";
-		picker.className = "emoji-picker";
+	/**
+	 * Fetches and parses emoji data from emoji-data-by-group.json using GM_xmlhttpRequest
+	 * @author Anh Duc Le
+	 */
+	const loadEmojiData = async () => {
+		return new Promise((resolve, reject) => {
+			GM_xmlhttpRequest({
+				method: "GET",
+				url: "https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/emoji-data-by-group.json",
+				onload: function (response) {
+					try {
+						const data = JSON.parse(response.responseText);
 
-		const tabsContainer = document.createElement("div");
-		tabsContainer.className = "emoji-tabs-container";
+						// Parse data theo cấu trúc: array of {name, slug, emojis: []}
+						const grouped = {};
 
-		tabsContainer.addEventListener("mousewheel", function (e) {
-			this.scrollLeft += e.deltaY;
-			e.preventDefault();
-		});
+						data.forEach((category) => {
+							const categoryName = category.name;
+							grouped[categoryName] = category.emojis.map(
+								(item) => item.emoji
+							);
+						});
 
-		const emojiContent = document.createElement("div");
-		emojiContent.className = "emoji-content";
-
-		const categoryIcons = {
-			Smileys: "😀",
-			Gestures: "👍",
-			People: "👨",
-			Animals: "🐱",
-			Food: "🍔",
-			Activities: "⚽️",
-			Objects: "📱",
-			Symbols: "❤️",
-		};
-
-		Object.keys(emojiCategories).forEach((category, idx) => {
-			const tab = document.createElement("button");
-			tab.className = "emoji-category-tab";
-			if (idx === 0) tab.classList.add("active");
-			tab.dataset.category = category;
-			tab.textContent = categoryIcons[category] || category.slice(0, 1);
-			tab.title = category;
-
-			tab.addEventListener("click", () => {
-				document
-					.querySelectorAll(".emoji-category-tab")
-					.forEach((t) => {
-						t.classList.remove("active");
-					});
-				tab.classList.add("active");
-
-				if (!cachedEmojiCategories.has(category)) {
-					const fragment = document.createDocumentFragment();
-					emojiCategories[category].forEach((emoji) => {
-						const emojiButton = document.createElement("button");
-						emojiButton.className = "emoji-button";
-						emojiButton.textContent = emoji;
-						fragment.appendChild(emojiButton);
-					});
-					cachedEmojiCategories.set(
-						category,
-						fragment.cloneNode(true)
-					);
-				}
-
-				emojiContent.innerHTML = "";
-				emojiContent.appendChild(
-					cachedEmojiCategories.get(category).cloneNode(true)
-				);
+						emojiCategories = grouped;
+						console.log(
+							"✅ Emoji data loaded successfully:",
+							Object.keys(emojiCategories).length,
+							"categories"
+						);
+						resolve();
+					} catch (error) {
+						console.error("❌ Failed to parse emoji data:", error);
+						loadFallbackEmojis();
+						resolve();
+					}
+				},
+				onerror: function (error) {
+					console.error("❌ Failed to fetch emoji data:", error);
+					loadFallbackEmojis();
+					resolve();
+				},
 			});
-
-			tabsContainer.appendChild(tab);
 		});
-
-		picker.appendChild(tabsContainer);
-		picker.appendChild(emojiContent);
-
-		setTimeout(() => {
-			const firstTab = picker.querySelector(".emoji-category-tab");
-			if (firstTab) firstTab.click();
-		}, 0);
-
-		const closePickerHandler = (e) => {
-			if (
-				picker.style.display === "flex" &&
-				!picker.contains(e.target) &&
-				e.target.id !== "emoji-button"
-			) {
-				picker.style.display = "none";
-			}
-		};
-		document.addEventListener("click", closePickerHandler);
-
-		picker.style.display = "none";
-		picker._cleanup = () =>
-			document.removeEventListener("click", closePickerHandler);
-		return picker;
 	};
 
+	/**
+	 * Loads fallback emojis when fetch fails
+	 * @author Anh Duc Le
+	 */
+	const loadFallbackEmojis = () => {
+		emojiCategories = {
+			"Smileys & Emotion": [
+				"😀",
+				"😃",
+				"😄",
+				"😁",
+				"😆",
+				"😅",
+				"🤣",
+				"😂",
+				"🙂",
+				"🙃",
+				"😉",
+				"😊",
+				"😇",
+				"🥰",
+				"😍",
+				"🤩",
+				"😘",
+				"😗",
+				"☺️",
+				"😚",
+			],
+			"People & Body": [
+				"👋",
+				"🤚",
+				"🖐️",
+				"✋",
+				"🖖",
+				"👌",
+				"🤌",
+				"🤏",
+				"✌️",
+				"🤞",
+				"🤟",
+				"🤘",
+				"🤙",
+				"👈",
+				"👉",
+				"👆",
+				"🖕",
+				"👇",
+				"☝️",
+				"👍",
+			],
+			"Animals & Nature": [
+				"🐶",
+				"🐱",
+				"🐭",
+				"🐹",
+				"🐰",
+				"🦊",
+				"🐻",
+				"🐼",
+				"🐨",
+				"🐯",
+				"🦁",
+				"🐮",
+				"🐷",
+				"🐽",
+				"🐸",
+				"🐵",
+				"🙈",
+				"🙉",
+				"🙊",
+				"🐒",
+			],
+			"Food & Drink": [
+				"🍏",
+				"🍎",
+				"🍐",
+				"🍊",
+				"🍋",
+				"🍌",
+				"🍉",
+				"🍇",
+				"🍓",
+				"🫐",
+				"🍈",
+				"🍒",
+				"🍑",
+				"🥭",
+				"🍍",
+				"🥥",
+				"🥝",
+				"🍅",
+				"🍆",
+				"🥑",
+			],
+			"Travel & Places": [
+				"🚗",
+				"🚕",
+				"🚙",
+				"🚌",
+				"🚎",
+				"🏎️",
+				"🚓",
+				"🚑",
+				"🚒",
+				"🚐",
+				"🛻",
+				"🚚",
+				"🚛",
+				"🚜",
+				"🛵",
+				"🏍️",
+				"🚲",
+				"🛴",
+				"🚁",
+				"✈️",
+			],
+			Activities: [
+				"⚽",
+				"🏀",
+				"🏈",
+				"⚾",
+				"🥎",
+				"🎾",
+				"🏐",
+				"🏉",
+				"🥏",
+				"🎱",
+				"🏓",
+				"🏸",
+				"🏒",
+				"🏑",
+				"🥍",
+				"🏏",
+				"🥅",
+				"⛳",
+				"🏹",
+				"🎣",
+			],
+			Objects: [
+				"⌚",
+				"📱",
+				"📲",
+				"💻",
+				"⌨️",
+				"🖥️",
+				"🖨️",
+				"🖱️",
+				"🖲️",
+				"🕹️",
+				"💾",
+				"💿",
+				"📀",
+				"📼",
+				"📷",
+				"📸",
+				"📹",
+				"🎥",
+				"📽️",
+				"📞",
+			],
+			Symbols: [
+				"❤️",
+				"🧡",
+				"💛",
+				"💚",
+				"💙",
+				"💜",
+				"🖤",
+				"🤍",
+				"🤎",
+				"💔",
+				"❣️",
+				"💕",
+				"💞",
+				"💓",
+				"💗",
+				"💖",
+				"💘",
+				"💝",
+				"💟",
+				"☮️",
+			],
+			Flags: ["🏳️", "🏴", "🏁", "🚩", "🏳️‍🌈", "🏳️‍⚧️", "🏴‍☠️", "🇻🇳", "🇺🇸", "🇬🇧"],
+		};
+		console.log("⚠️ Using fallback emoji data");
+	};
+
+	/**
+	 * Creates the text input popup for custom reactions.
+	 * @author Anh Duc Le
+	 */
 	const createTextInputPopup = () => {
 		const popup = document.createElement("div");
 		popup.className = "custom-reaction-popup";
@@ -541,14 +335,12 @@
 		inputContainer.className = "popup-input-container";
 
 		const input = document.createElement("input");
-		input.type = "text";
-		input.id = "custom-reaction-input";
 		input.className = "popup-input";
-		input.placeholder = "Nhập nội dung reaction...";
+		input.type = "text";
+		input.placeholder = "Nhập nội dung...";
 		input.maxLength = 15;
 
 		const emojiButton = document.createElement("button");
-		emojiButton.id = "emoji-button";
 		emojiButton.className = "popup-emoji-button";
 		emojiButton.textContent = "😊";
 
@@ -663,100 +455,108 @@
 		};
 	};
 
-	const enhanceReactionPanel = () => {
+	/**
+	 * Creates an emoji picker component.
+	 * @author Anh Duc Le
+	 */
+	const createEmojiPicker = () => {
+		const picker = document.createElement("div");
+		picker.className = "emoji-picker";
+
+		const tabsContainer = document.createElement("div");
+		tabsContainer.className = "emoji-tabs-container";
+
+		tabsContainer.addEventListener("mousewheel", function (e) {
+			this.scrollLeft += e.deltaY;
+			e.preventDefault();
+		});
+
+		const emojiContent = document.createElement("div");
+		emojiContent.className = "emoji-content";
+
+		const categoryIcons = {
+			"Smileys & Emotion": "😀",
+			"People & Body": "👨",
+			"Animals & Nature": "🐱",
+			"Food & Drink": "🍔",
+			"Travel & Places": "🚗",
+			Activities: "⚽",
+			Objects: "📱",
+			Symbols: "❤️",
+			Flags: "🏳️",
+		};
+
+		Object.keys(emojiCategories).forEach((category, idx) => {
+			const tab = document.createElement("button");
+			tab.className = "emoji-category-tab";
+			if (idx === 0) tab.classList.add("active");
+			tab.dataset.category = category;
+			tab.textContent = categoryIcons[category] || "📂";
+			tab.title = category;
+
+			tab.addEventListener("click", () => {
+				document
+					.querySelectorAll(".emoji-category-tab")
+					.forEach((t) => {
+						t.classList.remove("active");
+					});
+				tab.classList.add("active");
+
+				if (!cachedEmojiCategories.has(category)) {
+					const fragment = document.createDocumentFragment();
+					emojiCategories[category].forEach((emoji) => {
+						const emojiButton = document.createElement("button");
+						emojiButton.className = "emoji-button";
+						emojiButton.textContent = emoji;
+						fragment.appendChild(emojiButton);
+					});
+					cachedEmojiCategories.set(
+						category,
+						fragment.cloneNode(true)
+					);
+				}
+
+				emojiContent.innerHTML = "";
+				emojiContent.appendChild(
+					cachedEmojiCategories.get(category).cloneNode(true)
+				);
+			});
+
+			tabsContainer.appendChild(tab);
+		});
+
+		picker.appendChild(tabsContainer);
+		picker.appendChild(emojiContent);
+
+		setTimeout(() => {
+			const firstTab = picker.querySelector(".emoji-category-tab");
+			if (firstTab) firstTab.click();
+		}, 0);
+
+		const closePickerHandler = (e) => {
+			if (
+				picker.style.display === "flex" &&
+				!picker.contains(e.target) &&
+				!e.target.classList.contains("emoji-button")
+			) {
+				picker.style.display = "none";
+			}
+		};
+		document.addEventListener("click", closePickerHandler);
+
+		picker.style.display = "none";
+		picker._cleanup = () =>
+			document.removeEventListener("click", closePickerHandler);
+		return picker;
+	};
+
+	/**
+	 * Injects CSS styles for custom reactions, emoji picker, and popup
+	 * @author Anh Duc Le
+	 */
+	const injectCustomStyles = () => {
 		const style = document.createElement("style");
 		style.textContent = `
-			/* Emoji Picker Styles */
-			.emoji-picker {
-				position: absolute !important;
-				top: unset !important;
-				left: 1px !important;
-				right: 0;
-				background: white !important;
-				border-radius: 12px;
-				box-shadow: 0 4px 16px rgba(0,0,0,0.2);
-				padding: 8px;
-				z-index: 10000;
-				animation: fadeIn 0.2s ease-out;
-				width: 296px;
-				max-height: 350px;
-				overflow: hidden;
-				display: flex;
-				flex-direction: column;
-			}
-			
-			.emoji-tabs-container {
-				display: flex;
-				overflow-x: auto;
-				padding-bottom: 5px;
-				margin-bottom: 5px;
-				border-bottom: 1px solid #eee;
-				gap: 4px;
-				scrollbar-width: none;
-				-ms-overflow-style: none;
-				height: 36px;
-				min-height: 36px;
-				align-items: center;
-			}
-			
-			.emoji-tabs-container::-webkit-scrollbar {
-				display: none;
-			}
-			
-			.emoji-content {
-				overflow-y: auto;
-				display: grid;
-				grid-template-columns: repeat(8, 1fr);
-				gap: 4px;
-				padding-right: 4px;
-				max-height: 240px;
-				background-color: white !important;
-			}
-			
-			.emoji-content::-webkit-scrollbar {
-				display: none;
-			}
-			
-			.emoji-category-tab {
-				background: transparent !important;
-				border: none;
-				border-radius: 6px;
-				padding: 0;
-				cursor: pointer;
-				font-size: 16px;
-				min-width: 28px;
-				min-height: 28px;
-				height: 28px;
-				width: 28px;
-				text-align: center;
-				transition: background-color 0.2s;
-				flex-shrink: 0;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				color: inherit !important;
-			}
-			
-			.emoji-category-tab.active {
-				background: #e3f2fd !important;
-			}
-			
-			.emoji-button {
-				background: none !important;
-				border: none;
-				cursor: pointer;
-				font-size: 18px;
-				padding: 4px;
-				border-radius: 4px;
-				transition: background-color 0.2s, transform 0.2s;
-				color: inherit !important;
-			}
-			
-			.emoji-button:hover {
-				background-color: #f0f0f0 !important;
-				transform: scale(1.1);
-			}
-
 			/* Custom Reaction Popup Styles */
 			.custom-reaction-popup {
 				position: fixed;
@@ -771,7 +571,7 @@
 				display: none;
 				flex-direction: column;
 				gap: 15px;
-				min-width: 300px;
+				min-width: 320px;
 				animation: fadeIn 0.2s ease-out;
 			}
 
@@ -810,7 +610,6 @@
 				box-sizing: border-box;
 				border-radius: 4px;
 				transition: all .3s;
-				cursor: pointer;
 				font-size: .875rem;
 				font-weight: 400;
 				line-height: 1.5;
@@ -818,7 +617,7 @@
 			}
 
 			.popup-input:focus {
-				border-color: #2196F3;
+				border-color: var(--input-field-bg-outline-pressed);
 			}
 
 			.popup-emoji-button {
@@ -912,29 +711,92 @@
 			.popup-button-confirm:hover {
 				background-color: var(--button-primary-hover);
 			}
-			
-			.reaction-emoji-icon {
-				font-size: 20px !important;
+
+			/* Emoji Picker Styles */
+			.emoji-picker {
+				display: flex;
+				flex-direction: column;
+				position: absolute !important;
+				background: var(--input-field-bg-outline);
+				border: 1px solid var(--border);
+				border-radius: 4px;
+				padding: 8px;
+				z-index: 10000;
+				overflow: hidden;
+				animation: fadeIn 0.2s ease-out;
 			}
 			
-			.reaction-emoji-text {
-				white-space: nowrap !important;
-				overflow: hidden !important;
-				text-overflow: ellipsis !important;
-				max-width: 3ch !important;
+			.emoji-tabs-container {
+				display: flex;
+				overflow-x: auto;
+				padding-bottom: 5px;
+				margin-bottom: 5px;
+				border-bottom: 1px solid var(--border);
+				gap: 4px;
+				scrollbar-width: none;
+				-ms-overflow-style: none;
+				align-items: center;
+			}
+			
+			.emoji-tabs-container::-webkit-scrollbar {
+				display: none;
+			}
+			
+			.emoji-content {
+				display: grid;
+				grid-template-columns: repeat(8, 1fr);
+				gap: 4px;
+				overflow-y: auto;
+				max-height: 250px;
+				background-color: transparent;
+			}
+			
+			.emoji-content::-webkit-scrollbar {
+				display: none;
+			}
+			
+			.emoji-category-tab {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				background: transparent !important;
+				border: none;
+				border-radius: 4px;
+				padding: 0;
+				cursor: pointer;
+				font-size: 20px;
+				width: 30px;
+				height: 30px;
+				text-align: center;
+				transition: background-color 0.2s;
+				flex-shrink: 0;
+			}
+			
+			.emoji-category-tab.active {
+				background: var(--layer-background) !important;
+			}
+			
+			.emoji-button {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+				width: 32px;
+				height: 32px;
+				border: none;
+				cursor: pointer;
+				font-size: 18px;
+				padding: 4px;
+				border-radius: 4px;
+				background: none;
+				transition: background-color 0.2s, transform 0.2s;
+			}
+			
+			.emoji-button:hover {
+				background-color: var(--layer-background) !important;
+				transform: scale(1.1);
 			}
 
-			.reaction-emoji-icon:hover {
-				transform: scale(1.1) !important;
-			}
-			
-			/* Animations */
-			@keyframes fadeIn {
-				from { opacity: 0; }
-				to { opacity: 1; }
-			}
-
-			/* Custom Reaction Indicator */
+			/* Custom Reaction Styles */
 			[data-custom="true"]::after { 
 				content: ''; 
 				position: absolute; 
@@ -942,7 +804,7 @@
 				right: -2px; 
 				width: 6px; 
 				height: 6px; 
-				background: #37b361; 
+				background: var(--button-primary-normal); 
 				border-radius: 50%; 
 			}
 			
@@ -952,8 +814,8 @@
 				top: -35px;
 				left: 50%;
 				transform: translateX(-50%);
-				background-color: rgba(0,0,0,0.7);
-				color: white;
+				background-color: rgba(0, 0, 0, 0.7);
+				color: #ffffff;
 				padding: 4px 8px;
 				border-radius: 4px;
 				font-size: 12px;
@@ -962,6 +824,27 @@
 				opacity: 0;
 				animation: fadeIn 0.2s forwards;
 				z-index: 9999;
+			}
+
+			.reaction-emoji-icon {
+				font-size: 20px !important;
+			}
+			
+			.reaction-emoji-icon:hover {
+				transform: scale(1.1) !important;
+			}
+
+			.reaction-emoji-text {
+				white-space: nowrap !important;
+				overflow: hidden !important;
+				text-overflow: ellipsis !important;
+				max-width: 3ch !important;
+			}
+
+			/* Animations */
+			@keyframes fadeIn {
+				from { opacity: 0; }
+				to { opacity: 1; }
 			}
 		`;
 		document.head.appendChild(style);
@@ -993,7 +876,7 @@
 					const btn = wrapper.closest('[id^="reaction-btn-"]');
 					const id = btn?.id.replace("reaction-btn-", "");
 
-					reactions.forEach((react, idx) => {
+					customReactions.forEach((react, idx) => {
 						const div = document.createElement("div");
 						const divEmoji = document.createElement("span");
 						div.className = "reaction-emoji-icon";
@@ -1015,14 +898,13 @@
 							e.preventDefault();
 							e.stopPropagation();
 
-							if (react.name === "send_custom") {
+							if (react.name === "customize") {
 								if (!window.textInputPopup) {
 									window.textInputPopup =
 										createTextInputPopup();
 								}
 
 								window.textInputPopup.show();
-								window.currentReactionContext = { wrapper, id };
 
 								window.textInputPopup.confirmButton.onclick =
 									() => {
@@ -1032,9 +914,11 @@
 											const customReaction = {
 												...react,
 												icon: customText,
-												type: simpleHash(customText),
+												type: generateReactionHash(
+													customText
+												),
 											};
-											RecentlyReaction.add(customText);
+											recentlyReaction.add(customText);
 											sendReaction(
 												wrapper,
 												id,
@@ -1075,11 +959,29 @@
 		}
 	}
 
-	const init = () => {
+	/**
+	 * Generates a simple hash code from a string using DJB2-like algorithm
+	 * Used to create unique reaction type IDs
+	 * @param {string} str - The string to hash
+	 * @returns {number} A positive integer hash value
+	 * @author Anh Duc Le
+	 */
+	function generateReactionHash(str) {
+		let hash = 0;
+		for (let i = 0; i < str.length; i++) {
+			hash = (hash << 5) - hash + str.charCodeAt(i);
+			hash |= 0;
+		}
+		return Math.abs(hash);
+	}
+
+	const init = async () => {
+		await loadEmojiData();
 		observer.observe(document.body, { childList: true, subtree: true });
-		enhanceReactionPanel();
-		RecentlyReaction.load();
+		injectCustomStyles();
+		recentlyReaction.load();
 	};
+
 	"loading" === document.readyState
 		? document.addEventListener("DOMContentLoaded", init)
 		: init();
