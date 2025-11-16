@@ -2,15 +2,16 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.2.0
+// @version      1.3.0
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
-// @grant        none
+// @grant        GM_xmlhttpRequest
+// @connect      raw.githubusercontent.com
 // @license      MIT; https://opensource.org/licenses/MIT
-// @icon         https://raw.githubusercontent.com/ducladev/zalo-custom-reaction/refs/heads/dev/icon.svg
+// @icon         https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/icon.svg
 // @run-at       document-idle
 // @homepage     https://github.com/ducladev/zalo-custom-reaction
-// @downloadURL  https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.user.js
-// @updateURL    https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.meta.js
+// @downloadURL  https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/zalo-custom-reaction.user.js
+// @updateURL    https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/zalo-custom-reaction.meta.js
 // ==/UserScript==
