@@ -117,7 +117,6 @@
 					try {
 						const data = JSON.parse(response.responseText);
 
-						// Parse data theo cấu trúc: array of {name, slug, emojis: []}
 						const grouped = {};
 
 						data.forEach((category) => {
