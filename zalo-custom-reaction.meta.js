@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         Zalo Custom Reaction
-// @description  A userscript that lets you create custom reactions on Zalo Web.
+// @description  A userscript that helps you create and use custom reactions directly on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
 // @version      1.4.1
 // @author       Anh Duc Le (https://github.com/ducladev)
