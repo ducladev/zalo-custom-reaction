@@ -12,6 +12,6 @@
 // @icon         https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/icon.svg
 // @run-at       document-idle
 // @homepage     https://github.com/ducladev/zalo-custom-reaction
-// @downloadURL  https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/zalo-custom-reaction.user.js
-// @updateURL    https://cdn.jsdelivr.net/gh/ducladev/zalo-custom-reaction/zalo-custom-reaction.meta.js
+// @downloadURL  https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.user.js
+// @updateURL    https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.meta.js
 // ==/UserScript==
