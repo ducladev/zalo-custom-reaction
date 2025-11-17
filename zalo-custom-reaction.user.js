@@ -795,7 +795,7 @@
 				font-weight: var(--medium);
 				transition: background-color 0.2s;
 			}
-			
+
 			.popup-button:disabled {
 				opacity: 0.6;
 				cursor: not-allowed;
@@ -916,7 +916,7 @@
 				background: none;
 				transition: background-color 0.2s, transform 0.2s;
 			}
-			
+
 			.emoji-button:hover {
 				background-color: var(--button-secondary-neutral-normal) !important;
 				transform: scale(1.1);
