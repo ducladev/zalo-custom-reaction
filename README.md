@@ -1,5 +1,7 @@
 # Zalo Custom Reaction
 
+![zalo-custom-reaction](https://socialify.git.ci/ducladev/zalo-custom-reaction/image?custom_description=M%E1%BB%99t+userscript+gi%C3%BAp+b%E1%BA%A1n+t%E1%BA%A1o+v%C3%A0+s%E1%BB%AD+d%E1%BB%A5ng+reaction+t%C3%B9y+ch%E1%BB%89nh+ngay+tr%C3%AAn+Zalo+Web.&description=1&font=Inter&forks=1&issues=1&language=1&logo=https%3A%2F%2Fcdn.jsdelivr.net%2Fgh%2Fducladev%2Fzalo-custom-reaction%2Ficon.svg&name=1&owner=1&pattern=Floating+Cogs&pulls=1&stargazers=1&theme=Auto)
+
 Tạo và gửi reaction tùy chỉnh (emoji, text) trên Zalo Web một cách dễ dàng!
 
 ## Hướng dẫn cài đặt
