@@ -21,9 +21,13 @@ Tạo và gửi reaction tùy chỉnh (emoji, text) trên Zalo Web một cách d
 
 ## Lưu ý quan trọng
 
+- **Quyền thực thi userscript:**
+  - Để script hoạt động, bạn cần đảm bảo Tampermonkey đã cấp "Quyền thực thi userscript" cho trang Zalo Web.
+  - Nếu thấy script không chạy, hãy kiểm tra và bật quyền này theo hướng dẫn tại [Tampermonkey FAQ - Q209](https://www.tampermonkey.net/faq.php#Q209).
+
 - **Sau khi gửi reaction tùy chỉnh trên web**, biểu tượng hiển thị trên máy của bạn có thể là nút like (hoặc icon mặc định). Tuy nhiên, người nhận sẽ nhận được đúng biểu tượng tùy chỉnh, và trên điện thoại hoặc Zalo app cũng sẽ hiển thị đúng biểu tượng này.
 - **Để lưu biểu tượng tùy chỉnh cho lần sau** (không bị chuyển về nút like mặc định):  
-  Sau khi gửi trên web, hãy dùng điện thoại hoặc Zalo app để gửi lại reaction đó một lần nữa. Sau đó, khi quay lại Zalo Web, bạn sẽ thấy biểu tượng tùy chỉnh được cập nhật đúng.
+   Sau khi gửi trên web, hãy dùng điện thoại hoặc Zalo app để gửi lại reaction đó một lần nữa. Sau đó, khi quay lại Zalo Web, bạn sẽ thấy biểu tượng tùy chỉnh được cập nhật đúng.
 
 ---
 
