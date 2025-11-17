@@ -899,7 +899,7 @@
 			}
 
 			.emoji-category-tab.active {
-				background: var(--layer-background) !important;
+				background: var(--button-secondary-neutral-normal) !important;
 			}
 
 			.emoji-button {
@@ -918,7 +918,7 @@
 			}
 			
 			.emoji-button:hover {
-				background-color: var(--layer-background) !important;
+				background-color: var(--button-secondary-neutral-normal) !important;
 				transform: scale(1.1);
 			}
 
