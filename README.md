@@ -10,7 +10,7 @@ Tạo và gửi reaction tùy chỉnh (emoji, text) trên Zalo Web một cách d
 
 2. **Cài đặt Userscript Zalo Custom Reaction**  
    - Nhấn vào link sau: [zalo-custom-reaction.user.js](https://github.com/ducladev/zalo-custom-reaction/raw/refs/heads/main/zalo-custom-reaction.user.js)
-   - Trình duyệt sẽ mở giao diện Tampermonkey, chọn **Install** để xác nhận cài đặt script.
+   - Trình duyệt sẽ mở giao diện Tampermonkey, chọn **Cài đặt** để xác nhận cài đặt script.
 
 3. **Bắt đầu sử dụng**  
    - Truy cập [Zalo Web](https://chat.zalo.me/).
