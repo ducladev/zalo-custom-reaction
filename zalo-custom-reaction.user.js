@@ -2,7 +2,7 @@
 // @name         Zalo Custom Reaction
 // @description  A userscript that lets you create custom reactions on Zalo Web.
 // @supportURL   https://github.com/ducladev/zalo-custom-reaction/issues
-// @version      1.4.0
+// @version      1.4.1
 // @author       Anh Duc Le (https://github.com/ducladev)
 // @match        https://*.zalo.me/*
 // @match        https://chat.zalo.me/*
@@ -899,7 +899,7 @@
 			}
 
 			.emoji-category-tab.active {
-				background: var(--layer-background) !important;
+				background: var(--button-secondary-neutral-normal) !important;
 			}
 
 			.emoji-button {
@@ -918,7 +918,7 @@
 			}
 			
 			.emoji-button:hover {
-				background-color: var(--layer-background) !important;
+				background-color: var(--button-secondary-neutral-normal) !important;
 				transform: scale(1.1);
 			}
 
